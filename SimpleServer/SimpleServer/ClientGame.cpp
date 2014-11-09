@@ -21,9 +21,27 @@ ClientGame::ClientGame(void)
 	OutName = true;
 }
 
+ClientGame::ClientGame(std::string IPaddress)
+{
+	network = new ClientNetwork(IPaddress);
+
+	// send init packet
+	const unsigned int packet_size = sizeof(Packet);
+	char packet_data[packet_size];
+
+	Packet packet;
+	packet.packet_type = INIT_CONNECTION;
+
+	packet.serialize(packet_data);
+
+	NetworkServices::sendMessage(network->ConnectSocket, packet_data, packet_size);
+
+	OutName = true;
+}
 
 ClientGame::~ClientGame(void)
 {
+	sendDCPackets();
 	if (network != NULL)
 		delete network;
 }
@@ -102,7 +120,7 @@ void ClientGame::sendTalkPackets()
 	int iResult = NetworkServices::sendMessage(network->ConnectSocket, packet_data, packet_size);
 	if (iResult == SOCKET_ERROR)
 	{
-		printf("Message not sent by client");
+		printf("Message not sent by client.");
 	}
 
 	std::string placer = "";
@@ -111,11 +129,12 @@ void ClientGame::sendTalkPackets()
 
 void ClientGame::GetInput()
 {	
-
 	if (_kbhit())
 	{
 		std::string inputstring;
 		getline(std::cin, inputstring);
+		if (inputstring == "0")
+			exit(0);
 		sprintf_s(MessageBuffer, inputstring.c_str());
 		sendTalkPackets();
 		OutName = true;
@@ -127,3 +146,18 @@ void ClientGame::GetInput()
 	}
 }
 
+void ClientGame::sendDCPackets()
+{
+	const unsigned int packet_size = sizeof(Packet);
+	char packet_data[packet_size];
+
+	Packet packet;
+	packet.packet_type = DISCONNECTING;
+	packet.serialize(packet_data);
+
+	int iResult = NetworkServices::sendMessage(network->ConnectSocket, packet_data, packet_size);
+	if (iResult == SOCKET_ERROR)
+	{
+		printf("Message not sent by client.");
+	}
+}

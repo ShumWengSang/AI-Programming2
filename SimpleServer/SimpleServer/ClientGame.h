@@ -12,6 +12,7 @@ class ClientGame
 {
 public:
 	ClientGame(void);
+	ClientGame(std::string IPaddress);
 	~ClientGame(void);
 
 	ClientNetwork* network;
@@ -21,6 +22,9 @@ public:
 
 	void sendTalkPackets();
 	//Send a talk packet to server -- used for chatting
+
+	void sendDCPackets();
+	//Send a disconencting packet to server -- signal that client is going away.
 
     char network_data[MAX_PACKET_SIZE];
 

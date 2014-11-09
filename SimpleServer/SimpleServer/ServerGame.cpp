@@ -82,6 +82,13 @@ void ServerGame::receiveFromClients()
 
 					break;
 
+				case DISCONNECTING:
+					char theMessage[MAX_MESSAGE_SIZE];
+					sprintf_s(theMessage, "%s has disconnected.", Usernames.find(iter->first)->second.c_str());
+					network->sessions.erase(iter);
+					Usernames.erase(iter->first);
+
+					break;
                 default:
 
                     printf("error in packet types\n");
@@ -224,23 +231,4 @@ void ServerGame::ProcessTalkLine(char * inStream, unsigned int size, unsigned in
 	else
 		sendTalkPackets(inStream, size, id_clientUse, true);
 
-}
-
-bool ServerGame::Commands(char * inStream)
-{
-	unsigned int Action = 0;
-
-	switch (Action)
-	{
-	case 1:
-		break;
-	case 2:
-		break;
-	case 3:
-		break;
-	default:
-		break;
-	}
-
-	return false;
 }

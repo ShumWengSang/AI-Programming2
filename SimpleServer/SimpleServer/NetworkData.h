@@ -14,6 +14,9 @@ enum PacketTypes {
 
 	TALK = 2,
 	//TALKING PACKETS
+
+	DISCONNECTING = 3,
+	//Packet for disconnecting
 };
 
 struct Packet {

@@ -28,9 +28,19 @@ int main()
 	// create thread with arbitrary argument for the run function
 	  _beginthread( serverLoop, 0, (void*)12);
 
+	printf("IP address to contact. Press 1 to let the IP address be your own computer");
+	printf("Press 0 at any moment to quit");
 
-    // initialize the client 
-    client = new ClientGame();
+	std::string IPaddress;
+	std::cin >> IPaddress;
+	if (IPaddress == "1")
+	{
+		// initialize the client 
+		client = new ClientGame();
+	}
+	else
+		client = new ClientGame(IPaddress);
+
 	_beginthread( clientInputLoop, 0, (void*)12);
 
 	clientLoop();

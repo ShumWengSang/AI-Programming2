@@ -66,7 +66,7 @@ ServerNetwork::ServerNetwork(void)
 
     if (iResult == SOCKET_ERROR) {
         printf("bind failed with error: %d\n", WSAGetLastError());
-		printf("Server could already be set up and running, or the port is being used by other programs \n");
+		printf("Server could already be set up and running,\n or the port is being used by other programs \n");
         freeaddrinfo(result);
         closesocket(ListenSocket);
         WSACleanup();

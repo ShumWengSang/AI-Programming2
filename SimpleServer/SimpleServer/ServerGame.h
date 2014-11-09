@@ -28,7 +28,6 @@ public:
 	//Send talk packets to everyone but the person that called it or the person
 	//True is send to everyone, false is send to the user only
 
-	bool Commands(char * inStream);
 	void ProcessTalkLine(char * inStream, unsigned int size, unsigned int id_clientUse);
 
 private:

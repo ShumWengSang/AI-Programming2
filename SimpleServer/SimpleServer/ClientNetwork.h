@@ -6,6 +6,7 @@
 #include <ws2tcpip.h>
 #include <stdio.h> 
 #include "NetworkData.h"
+#include <string>
 
 // size of our buffer
 #define DEFAULT_BUFLEN 512
@@ -29,8 +30,10 @@ public:
 
     // ctor/dtor
     ClientNetwork(void);
+	ClientNetwork(std::string IPAdress);
     ~ClientNetwork(void);
 
+	void Init(std::string IPAdress);
 	int receivePackets(char *);
 };
 
