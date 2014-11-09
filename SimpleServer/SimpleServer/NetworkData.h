@@ -1,19 +1,19 @@
 #pragma once
 #include <string.h>
 
-using namespace std;
-
 #define MAX_PACKET_SIZE 1000000
 #define MAX_MESSAGE_SIZE 1000
 
 enum PacketTypes {
 
 	INIT_CONNECTION = 0,
+	//HANDSHAKE PACKET
 
 	ACTION_EVENT = 1,
+	//ASSIGN NAMES + IDs
 
 	TALK = 2,
-
+	//TALKING PACKETS
 };
 
 struct Packet {

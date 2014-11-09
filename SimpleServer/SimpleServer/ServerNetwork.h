@@ -5,11 +5,19 @@
 #include <ws2tcpip.h>
 #include <map>
 #include "NetworkData.h"
-using namespace std; 
 #pragma comment (lib, "Ws2_32.lib")
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "123456" 
+
+struct ClientInfo
+{
+	unsigned int client_id;
+	std::string Username;
+
+	ClientInfo(){};
+	~ClientInfo(){};
+};
 
 class ServerNetwork
 {
@@ -19,6 +27,10 @@ public:
 
 	// send data to all clients
     void sendToAll(char * packets, int totalSize);
+	//Send data to all but the one that sent it orginally
+	void sendToAllButOne(char * packets, int totalSize, unsigned int client_id);
+	//Send data to only one person
+	void sendToOne(char * packets, int totalsize, unsigned int client_id);
 
 	// receive incoming data
     int receiveData(unsigned int client_id, char * recvbuf);

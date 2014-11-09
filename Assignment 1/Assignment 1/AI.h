@@ -30,6 +30,8 @@ public:
 	void DrawObject(GameObject *go);
 	void RenderStringOnScreen(float x, float y, const char* quote);
 
+
+
 private:
 	AI();
 	~AI();
@@ -43,6 +45,8 @@ private:
 
 	int m_lives;
 	int m_score;
+
+	bool Alarm;
 
 	GameObject* FetchGO();
 };

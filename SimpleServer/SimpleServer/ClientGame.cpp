@@ -17,6 +17,8 @@ ClientGame::ClientGame(void)
     packet.serialize(packet_data);
 
     NetworkServices::sendMessage(network->ConnectSocket, packet_data, packet_size);
+
+	OutName = true;
 }
 
 
@@ -61,17 +63,16 @@ void ClientGame::update()
 
             case ACTION_EVENT:
 
-                printf("client received action event packet from server\n");
-
-                sendActionPackets();
-
+				username = packet.Message;
+				std::cout << "My username is " << username << std::endl;
                 break;
 
 
 			case TALK:
 
-				printf(packet.Message);
-				cout << endl;
+				std::cout << packet.Message << std::endl;
+				std::cout << std::endl;
+				OutName = true;
 
 				break;
 
@@ -104,18 +105,25 @@ void ClientGame::sendTalkPackets()
 		printf("Message not sent by client");
 	}
 
-	string placer = "";
+	std::string placer = "";
 	sprintf_s(MessageBuffer, placer.c_str());
 }
 
 void ClientGame::GetInput()
-{
+{	
+
 	if (_kbhit())
 	{
-		cout << endl;
 		std::string inputstring;
 		getline(std::cin, inputstring);
 		sprintf_s(MessageBuffer, inputstring.c_str());
 		sendTalkPackets();
+		OutName = true;
+	}
+	if (OutName)
+	{
+		//std::cout << username << " : ";
+		OutName = false;
 	}
 }
+

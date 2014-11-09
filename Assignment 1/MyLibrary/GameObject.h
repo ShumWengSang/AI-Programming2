@@ -4,6 +4,12 @@
 
 struct GameObject
 {
+	enum STATES
+	{
+		IDLE = 0,
+		ALARMED,
+		CHASE,
+	};
 	enum GAMEOBJECT_TYPE
 	{
 		GO_NONE = 0,
@@ -13,6 +19,8 @@ struct GameObject
 		GO_WALL,
 		GO_TOTAL //must be last
 	};
+
+	STATES CurrentState;
 	GAMEOBJECT_TYPE type;
 	Vector3 pos;
 	Vector3 vel;

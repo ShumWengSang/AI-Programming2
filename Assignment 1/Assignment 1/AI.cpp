@@ -1,15 +1,25 @@
 #include "AI.h"
 
+inline const char * const BooltoString(bool b)
+{
+	if (b)
+		return "true";
+	return "false";
+}
+
 void AI::Init()
 {
+	Alarm = false;
 	Math::InitRNG();
 
 	GameObject * go;
 	go = FetchGO();
 	go->type = GameObject::GO_POLICE;
-	go->pos.Set(70, 50, 0);
+	go->pos.Set(80, 50, 0);
 	go->scale.Set(1, 1, 1);
-	go->vel.Set(0, 5, 0);
+	go->vel.Set(0, 15, 0);
+	go->CurrentState = GameObject::STATES::IDLE;
+	go->color.Set(0, 0, 1);
 }
 
 void AI::Exit()
@@ -95,6 +105,7 @@ void AI::GlutSpecialKey(int key, int x, int y)
 	switch (key)
 	{
 	case GLUT_KEY_LEFT:
+		Alarm = true;
 		break;
 	case GLUT_KEY_UP:
 		break;
@@ -140,11 +151,47 @@ void AI::GlutIdle()
 			}
 
 			//Code to handle out of bound game objects
+
 			switch (go->type)
 			{
 			case GameObject::GO_BULLET:
 				break;
 			case GameObject::GO_ROBBER:
+				break;
+			case GameObject::GO_POLICE:
+
+				switch (go->CurrentState)
+				{
+				case GameObject::STATES::IDLE:
+					if (go->pos.y >= 70)
+					{
+						go->vel = Vector3(15, 0, 0);
+					}
+					if (go->pos.x >= 100)
+					{
+						go->vel = Vector3(0, -15, 0);
+					}
+					if (go->pos.y <= 40)
+					{
+						go->vel = Vector3(-15, 0, 0);
+					}
+					if (go->pos.x <= 79)
+					{
+						go->vel = Vector3(0, 15, 0);
+					}
+					if (Alarm)
+						go->CurrentState = GameObject::STATES::ALARMED;
+					break;
+				case GameObject::STATES::ALARMED:
+					Vector3 thePlace(50, 50, 0);
+					Vector3 TheDirection( thePlace - go->pos);
+					TheDirection.Normalize();
+					TheDirection *= 15;
+					go->vel = TheDirection;
+					go->color.Set(1, 0, 0);
+					break;
+				}
+				
 				break;
 			}
 		}
@@ -167,11 +214,14 @@ void AI::GlutDisplay()
 	}
 
 	//glColor3f(1.0, 1.0, 1.0);
-	//char temp[64];
-	//sprintf_s(temp, "FPS: %.2f", m_fps);
-	//RenderStringOnScreen(0, 94, temp);
-	//sprintf_s(temp, "Simulation Speed: %.1f", m_speed);
-	//RenderStringOnScreen(0, 90, temp);
+	char temp[64];
+	sprintf_s(temp, "Police Position: %.2f %.2f %.2f", m_goList.at(0)->pos.x, m_goList.at(0)->pos.y, m_goList.at(0)->pos.z);
+	//Testing for position
+
+	RenderStringOnScreen(0, 94, temp);
+	//sprintf_s(temp, "Alarm : %.1b", Alarm);
+
+	RenderStringOnScreen(0, 90, BooltoString(Alarm));
 	//sprintf_s(temp, "Mass: %.1f", m_ship->mass);
 	//RenderStringOnScreen(0, 86, temp);
 
@@ -199,7 +249,8 @@ void AI::DrawObject(GameObject *go)
 		break;
 	case GameObject::GO_POLICE:
 		glPushMatrix();
-			glColor3f(0, 0, 1);
+			//glColor3f(0, 0, 1);
+			glColor3f(go->color.x, go->color.y, go->color.z);
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
 			glScalef(go->scale.x, go->scale.y, go->scale.z);
 			glutSolidSphere(1, 10, 10);

@@ -66,6 +66,7 @@ ServerNetwork::ServerNetwork(void)
 
     if (iResult == SOCKET_ERROR) {
         printf("bind failed with error: %d\n", WSAGetLastError());
+		printf("Server could already be set up and running, or the port is being used by other programs \n");
         freeaddrinfo(result);
         closesocket(ListenSocket);
         WSACleanup();
@@ -107,7 +108,7 @@ bool ServerNetwork::acceptNewClient(unsigned int & id)
         setsockopt( ClientSocket, IPPROTO_TCP, TCP_NODELAY, &value, sizeof( value ) );
 
         // insert new client into session id table
-        sessions.insert( pair<unsigned int, SOCKET>(id, ClientSocket) );
+		sessions.insert(std::pair<unsigned int, SOCKET>(id, ClientSocket));
 
         return true;
     }
@@ -153,4 +154,43 @@ void ServerNetwork::sendToAll(char * packets, int totalSize)
             closesocket(currentSocket);
         }
     }
+}
+
+void ServerNetwork::sendToAllButOne(char * packets, int totalSize, unsigned int client_id)
+{
+	SOCKET currentSocket;
+	std::map<unsigned int, SOCKET>::iterator iter;
+	int iSendResult;
+
+	for (iter = sessions.begin(); iter != sessions.end(); iter++)
+	{
+		if (iter->first == client_id)
+			continue;
+		currentSocket = iter->second;
+		iSendResult = NetworkServices::sendMessage(currentSocket, packets, totalSize);
+
+		if (iSendResult == SOCKET_ERROR)
+		{
+			printf("send failed with error: %d\n", WSAGetLastError());
+			closesocket(currentSocket);
+		}
+	}
+}
+
+void ServerNetwork::sendToOne(char * packets, int totalSize, unsigned int client_id)
+{
+	SOCKET currentSocket;
+	std::map<unsigned int, SOCKET>::iterator iter;
+	int iSendResult;
+
+	currentSocket = sessions.find(client_id)->second;
+
+	iSendResult = NetworkServices::sendMessage(currentSocket, packets, totalSize);
+
+
+	if (iSendResult == SOCKET_ERROR)
+	{
+		printf("send failed with error: %d\n", WSAGetLastError());
+		closesocket(currentSocket);
+	}
 }

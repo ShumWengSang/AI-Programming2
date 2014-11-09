@@ -1,6 +1,9 @@
 #pragma once
 #include "ServerNetwork.h"
 #include "NetworkData.h"
+#include <map>
+#include <string>
+#include <iostream>
 
 class ServerGame
 {
@@ -15,9 +18,18 @@ public:
 	void receiveFromClients();
 
 	void sendActionPackets();
+	//send action packet to everyone
+	void sendActionPackets(unsigned int id_client, char * theUsername);
+	//id_client is the client that it will send the action packet to
 	
 	void sendTalkPackets();
-	void sendTalkPackets(char * buffer);
+	//ERROR send talk packet to everyone
+	void sendTalkPackets(char * buffer, unsigned int buffersize, unsigned int id_client, bool mode);
+	//Send talk packets to everyone but the person that called it or the person
+	//True is send to everyone, false is send to the user only
+
+	bool Commands(char * inStream);
+	void ProcessTalkLine(char * inStream, unsigned int size, unsigned int id_clientUse);
 
 private:
 
@@ -29,4 +41,6 @@ private:
 
 	// data buffer
    char network_data[MAX_PACKET_SIZE];
+   
+   std::map<unsigned int, std::string> Usernames;
 };

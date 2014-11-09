@@ -17,8 +17,10 @@ public:
 	ClientNetwork* network;
 
 	void sendActionPackets();
+	//Send an action packet to server -- used for changing names
 
 	void sendTalkPackets();
+	//Send a talk packet to server -- used for chatting
 
     char network_data[MAX_PACKET_SIZE];
 
@@ -27,5 +29,9 @@ public:
 	void GetInput();
 
 	char MessageBuffer[MAX_MESSAGE_SIZE];
+
+	std::string username;
+
+	bool OutName;
 };
 
