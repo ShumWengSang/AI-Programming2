@@ -1,15 +1,8 @@
 #pragma once
-
 #include "Vector3.h"
 
 struct GameObject
 {
-	enum STATES
-	{
-		PATROLLING = 0,
-		CHASING,
-		MOVING,
-	};
 	enum GAMEOBJECT_TYPE
 	{
 		GO_NONE = 0,
@@ -17,7 +10,19 @@ struct GameObject
 		GO_ROBBER,
 		GO_BULLET,
 		GO_WALL,
+		GO_EXIT,
 		GO_TOTAL //must be last
+	};
+
+	enum STATES
+	{
+		PATROLLING = 0,
+		MOVING,
+		CHASING,
+
+		STEALING,
+		RUNNING,
+		CAUGHT
 	};
 
 	STATES CurrentState;

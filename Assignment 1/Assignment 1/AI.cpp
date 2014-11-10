@@ -9,17 +9,26 @@ inline const char * const BooltoString(bool b)
 
 void AI::Init()
 {
-	Alarm = false;
 	Math::InitRNG();
 
+	Alarm = false;
+	
 	GameObject * go;
+	go = FetchGO();
+	go->type = GameObject::GO_ROBBER;
+	go->pos.Set(70, 50, 0);
+	go->CurrentState = GameObject::STATES::STEALING;
+	
 	go = FetchGO();
 	go->type = GameObject::GO_POLICE;
 	go->pos.Set(80, 50, 0);
-	go->scale.Set(1, 1, 1);
 	go->vel.Set(0, 15, 0);
 	go->CurrentState = GameObject::STATES::PATROLLING;
-	go->color.Set(0, 0, 1);
+
+
+	exit = FetchGO();
+	exit->type = GameObject::GO_EXIT;
+	exit->pos.Set(20, 60, 0);
 }
 
 void AI::Exit()
@@ -96,6 +105,9 @@ void AI::GlutMouseMove(int x, int y)
 void AI::GlutKeyboard(unsigned char key, int x, int y)
 {
 	switch (key) {
+	case ' ':
+		Alarm = true;
+		break;
 	}
 }
 
@@ -105,13 +117,16 @@ void AI::GlutSpecialKey(int key, int x, int y)
 	switch (key)
 	{
 	case GLUT_KEY_LEFT:
-		Alarm = true;
+		exit->pos.x -= 5;
 		break;
 	case GLUT_KEY_UP:
+		exit->pos.y += 5;
 		break;
 	case GLUT_KEY_RIGHT:
+		exit->pos.x += 5;
 		break;
 	case GLUT_KEY_DOWN:
+		exit->pos.y -= 5;
 		break;
 	}
 }
@@ -151,12 +166,27 @@ void AI::GlutIdle()
 			}
 
 			//Code to handle out of bound game objects
-
 			switch (go->type)
 			{
 			case GameObject::GO_BULLET:
 				break;
 			case GameObject::GO_ROBBER:
+				if (go->mass < 100) 
+					go->CurrentState = GameObject::STATES::STEALING;
+				else 
+					go->CurrentState = GameObject::STATES::RUNNING;
+
+				switch (go->CurrentState) 
+				{
+				case GameObject::STATES::STEALING:
+					go->mass += 1;
+					break;
+				case GameObject::STATES::RUNNING:
+					//go->vel.Set();
+					//Vector3 temp = (exit->pos - go->pos).Normalized;
+					go->vel = (exit->pos - go->pos).Normalized() * 15;
+					break;
+				}
 				break;
 			case GameObject::GO_POLICE:
 
@@ -183,23 +213,14 @@ void AI::GlutIdle()
 						go->CurrentState = GameObject::STATES::MOVING;
 					break;
 				case GameObject::STATES::MOVING:
-					GotoLocation(Vector3(50,50,0),go,15);
+					GotoLocation(Vector3(50, 50, 0), go, 15);
 					go->color.Set(1, 0, 0);
 					break;
 				}
-				
 				break;
 			}
 		}
 	}
-}
-
-void AI::GotoLocation(Vector3 theNewPos, GameObject * go, float speed)
-{
-	Vector3 TheDirection( theNewPos - go->pos);
-	TheDirection.Normalize();
-	TheDirection *= speed;
-	go->vel = TheDirection;
 }
 
 void AI::GlutDisplay()
@@ -218,14 +239,11 @@ void AI::GlutDisplay()
 	}
 
 	//glColor3f(1.0, 1.0, 1.0);
-	char temp[64];
-	sprintf_s(temp, "Police Position: %.2f %.2f %.2f", m_goList.at(0)->pos.x, m_goList.at(0)->pos.y, m_goList.at(0)->pos.z);
-	//Testing for position
-
-	RenderStringOnScreen(0, 94, temp);
-	//sprintf_s(temp, "Alarm : %.1b", Alarm);
-
-	RenderStringOnScreen(0, 90, BooltoString(Alarm));
+	//char temp[64];
+	//sprintf_s(temp, "FPS: %.2f", m_fps);
+	//RenderStringOnScreen(0, 94, temp);
+	//sprintf_s(temp, "Simulation Speed: %.1f", m_speed);
+	//RenderStringOnScreen(0, 90, temp);
 	//sprintf_s(temp, "Mass: %.1f", m_ship->mass);
 	//RenderStringOnScreen(0, 86, temp);
 
@@ -239,6 +257,19 @@ void AI::GlutDisplay()
 	glutPostRedisplay();
 }
 
+void AI::GotoLocation(Vector3 theNewPos, GameObject * go, float speed)
+{
+	Vector3 TheDirection(theNewPos - go->pos);
+	TheDirection.Normalize();
+	TheDirection *= speed;
+	go->vel = TheDirection;
+}
+
+bool AI::ReachedLocation(Vector3 thePosReached, GameObject * go)
+{
+	return 1 > (thePosReached - go->pos).Length();
+}
+
 void AI::DrawObject(GameObject *go)
 {
 	switch (go->type)
@@ -249,12 +280,36 @@ void AI::DrawObject(GameObject *go)
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
 			glScalef(go->scale.x, go->scale.y, go->scale.z);
 			glutSolidSphere(1, 10, 10);
+			
+			glTranslatef(0, 3, 0); //Bar Outline
+			glColor3f(0, 1, 0);
+			glBegin(GL_LINES);
+				glVertex3f(-3, -1, 0);
+				glVertex3f(3, -1, 0);
+
+				glVertex3f(3, 1, 0);
+				glVertex3f(-3, 1, 0);
+
+				glVertex3f(3, -1, 0);
+				glVertex3f(3, 1, 0);
+
+				glVertex3f(-3, -1, 0);
+				glVertex3f(-3, 1, 0);
+			glEnd();
+
+			glBegin(GL_QUADS);
+				glVertex3f(-3, 1, 0);
+				glVertex3f(-3, -1, 0);
+				//glVertex3f(2, -1, 0);
+				//glVertex3f(2, 1, 0);
+				glVertex3f(-3 + 0.06 * go->mass, -1, 0);
+				glVertex3f(-3 + 0.06 * go->mass, 1, 0);
+			glEnd();
 		glPopMatrix();
 		break;
 	case GameObject::GO_POLICE:
 		glPushMatrix();
-			//glColor3f(0, 0, 1);
-			glColor3f(go->color.x, go->color.y, go->color.z);
+			glColor3f(0, 0, 1);
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
 			glScalef(go->scale.x, go->scale.y, go->scale.z);
 			glutSolidSphere(1, 10, 10);
@@ -266,6 +321,14 @@ void AI::DrawObject(GameObject *go)
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
 			glScalef(go->scale.x, go->scale.y, go->scale.z);
 			glutSolidSphere(0.2, 10, 10);
+		glPopMatrix();
+		break;
+	case GameObject::GO_EXIT:
+		glPushMatrix();
+		glColor3f(1, 1, 1);
+		glTranslatef(go->pos.x, go->pos.y, go->pos.z);
+		glScalef(go->scale.x, go->scale.y, go->scale.z);
+		glutSolidCube(2);
 		glPopMatrix();
 		break;
 	}
@@ -280,9 +343,4 @@ void AI::RenderStringOnScreen(float x, float y, const char* quote)
 	{
 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, quote[i]);
 	}
-}
-
-bool AI::ReachedLocation(Vector3 thePosReached, GameObject * go)
-{
-	return 1 > (thePosReached - go->pos).Length();
 }

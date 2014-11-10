@@ -1,6 +1,4 @@
 #pragma once
-#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
-//The above will suppress the console application from opening
 
 #include <iostream>
 #include <vector>
@@ -8,6 +6,9 @@
 
 #include "GameObject.h"
 #include "freeglut.h"
+
+#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
+//The above will suppress the console application from opening
 
 class AI
 {
@@ -35,8 +36,6 @@ public:
 	void GotoLocation(Vector3 theNewPos, GameObject * go, float speed);
 	bool ReachedLocation(Vector3 thePosReached, GameObject * go);
 
-
-
 private:
 	AI();
 	~AI();
@@ -50,8 +49,8 @@ private:
 
 	int m_lives;
 	int m_score;
-
 	bool Alarm;
 
 	GameObject* FetchGO();
+	GameObject* exit;
 };
