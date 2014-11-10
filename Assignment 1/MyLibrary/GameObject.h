@@ -6,9 +6,9 @@ struct GameObject
 {
 	enum STATES
 	{
-		IDLE = 0,
-		ALARMED,
-		CHASE,
+		PATROLLING = 0,
+		CHASING,
+		MOVING,
 	};
 	enum GAMEOBJECT_TYPE
 	{

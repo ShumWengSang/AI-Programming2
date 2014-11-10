@@ -18,7 +18,7 @@ void AI::Init()
 	go->pos.Set(80, 50, 0);
 	go->scale.Set(1, 1, 1);
 	go->vel.Set(0, 15, 0);
-	go->CurrentState = GameObject::STATES::IDLE;
+	go->CurrentState = GameObject::STATES::PATROLLING;
 	go->color.Set(0, 0, 1);
 }
 
@@ -162,7 +162,7 @@ void AI::GlutIdle()
 
 				switch (go->CurrentState)
 				{
-				case GameObject::STATES::IDLE:
+				case GameObject::STATES::PATROLLING:
 					if (go->pos.y >= 70)
 					{
 						go->vel = Vector3(15, 0, 0);
@@ -180,14 +180,10 @@ void AI::GlutIdle()
 						go->vel = Vector3(0, 15, 0);
 					}
 					if (Alarm)
-						go->CurrentState = GameObject::STATES::ALARMED;
+						go->CurrentState = GameObject::STATES::MOVING;
 					break;
-				case GameObject::STATES::ALARMED:
-					Vector3 thePlace(50, 50, 0);
-					Vector3 TheDirection( thePlace - go->pos);
-					TheDirection.Normalize();
-					TheDirection *= 15;
-					go->vel = TheDirection;
+				case GameObject::STATES::MOVING:
+					GotoLocation(Vector3(50,50,0),go,15);
 					go->color.Set(1, 0, 0);
 					break;
 				}
@@ -196,6 +192,14 @@ void AI::GlutIdle()
 			}
 		}
 	}
+}
+
+void AI::GotoLocation(Vector3 theNewPos, GameObject * go, float speed)
+{
+	Vector3 TheDirection( theNewPos - go->pos);
+	TheDirection.Normalize();
+	TheDirection *= speed;
+	go->vel = TheDirection;
 }
 
 void AI::GlutDisplay()
@@ -276,4 +280,9 @@ void AI::RenderStringOnScreen(float x, float y, const char* quote)
 	{
 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, quote[i]);
 	}
+}
+
+bool AI::ReachedLocation(Vector3 thePosReached, GameObject * go)
+{
+	return 1 > (thePosReached - go->pos).Length();
 }

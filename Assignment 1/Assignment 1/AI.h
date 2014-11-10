@@ -1,4 +1,6 @@
 #pragma once
+#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
+//The above will suppress the console application from opening
 
 #include <iostream>
 #include <vector>
@@ -29,6 +31,9 @@ public:
 	void GlutSpecialKey(int key, int x, int y);
 	void DrawObject(GameObject *go);
 	void RenderStringOnScreen(float x, float y, const char* quote);
+
+	void GotoLocation(Vector3 theNewPos, GameObject * go, float speed);
+	bool ReachedLocation(Vector3 thePosReached, GameObject * go);
 
 
 
