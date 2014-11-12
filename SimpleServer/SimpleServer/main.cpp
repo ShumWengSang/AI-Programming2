@@ -28,8 +28,8 @@ int main()
 	// create thread with arbitrary argument for the run function
 	  _beginthread( serverLoop, 0, (void*)12);
 
-	printf("IP address to contact. Press 1 to let the IP address be your own computer");
-	printf("Press 0 at any moment to quit");
+	printf("IP address to contact. Press 1 to let the IP address be your own computer \n");
+	printf("Press 0 at any moment to quit \n");
 
 	std::string IPaddress;
 	std::cin >> IPaddress;
@@ -61,6 +61,7 @@ void serverLoop(void * arg)
     {
         server->update();
     }
+	_endthread();
 }
 
 void clientLoop()
@@ -70,6 +71,7 @@ void clientLoop()
         //do game stuff
         client->update();
     }
+	_endthread();
 }
 
 void clientInputLoop(void *)
@@ -78,4 +80,5 @@ void clientInputLoop(void *)
 	{
 		client->GetInput();
 	}
+	_endthread();
 }

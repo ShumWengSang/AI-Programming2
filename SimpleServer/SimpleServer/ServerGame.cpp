@@ -43,11 +43,16 @@ void ServerGame::receiveFromClients()
     {
         int data_length = network->receiveData(iter->first, network_data);
 
-        if (data_length <= 0) 
+        if (data_length < 0) 
         {
             //no data recieved
             continue;
         }
+		if (data_length == 0)
+		{
+			printf("Data closed GRACEFULLY LOL \n");
+			continue;
+		}
 
         int i = 0;
         while (i < (unsigned int)data_length) 
@@ -83,6 +88,7 @@ void ServerGame::receiveFromClients()
 					break;
 
 				case DISCONNECTING:
+					printf("I HAVE RECEIVED DC CONNECT");
 					char theMessage[MAX_MESSAGE_SIZE];
 					sprintf_s(theMessage, "%s has disconnected.", Usernames.find(iter->first)->second.c_str());
 					network->sessions.erase(iter);
@@ -202,6 +208,8 @@ void ServerGame::ProcessTalkLine(char * inStream, unsigned int size, unsigned in
 	{
 		char ChangeUsername = 'u';
 		char PrintList = 'l';
+		char Whisper = 'w';
+
 		if ((size > 3) && (inStream[1] == ChangeUsername) && (inStream[2] == ' '))   // inStream contains /u command?
 		{
 			/* process change of user name */
@@ -214,7 +222,7 @@ void ServerGame::ProcessTalkLine(char * inStream, unsigned int size, unsigned in
 		}
 
 
-		if ((size > 2) && (inStream[1] == PrintList))   // inStream contains /u command?
+		if ((size > 2) && (inStream[1] == PrintList))   // inStream contains /l command?
 		{
 			char theList[MAX_MESSAGE_SIZE];
 			//Process Print list
@@ -227,8 +235,84 @@ void ServerGame::ProcessTalkLine(char * inStream, unsigned int size, unsigned in
 			}
 			return;   // stop here since message is processed!
 		}
+
+		if ((size > 3) && (inStream[1] == Whisper) && (inStream[2] == ' '))   // inStream contains /w command?
+		{
+			//Send whisper to target
+			char * theTarget;
+			char * next_token1 = NULL;
+			char * theWholeMessage = &(inStream[3]);
+			char * theMessage;
+			char * counter;
+
+			theTarget = strtok_s(theWholeMessage, " ",&next_token1);
+
+
+			unsigned int theRetrievedSocket;
+			bool Found = false;
+
+			for (std::map<unsigned int, std::string>::iterator it = Usernames.begin(); it != Usernames.end(); ++it)
+			{
+				if (it->second == theTarget)
+				{
+					Found = true;
+					theRetrievedSocket = it->first;
+					break;
+				}
+			}
+
+			if (Found)
+			{
+				//counter = next_token1;
+				//strncat_s(next_token1, theMessage, 0);
+				printf("hehe token is this now : %s", next_token1);
+				sendTalkPackets(next_token1, sizeof(next_token1) + 1, id_clientUse, (unsigned int)std::stoi(theTarget));
+			}
+			else
+			{
+				theMessage = "User not found.";
+				sendTalkPackets(theMessage, sizeof(theMessage), id_clientUse, false);
+			}
+
+			return;   // stop here since message is processed!
+		}
 	}
 	else
 		sendTalkPackets(inStream, size, id_clientUse, true);
 
+}
+
+void ServerGame::sendTalkPackets(char * buffer, unsigned int buffersize, unsigned int theSender, unsigned int theReceiver)
+{
+	//overloaded function for send talk packets.
+	std::string theMessage(buffer);
+	theMessage += "0";
+
+	const unsigned int packet_size = sizeof(Packet);
+	char packet_data[packet_size];
+	Packet packet;
+	packet.packet_type = TALK;
+
+	char client_id[MAX_MESSAGE_SIZE];
+
+
+	char theBuffer[MAX_MESSAGE_SIZE];
+	strcpy_s(theBuffer, theMessage.c_str());
+	//Quick hot fix for error "string not null terminated"
+
+	const char * test = theMessage.c_str();
+	sprintf_s(client_id, "User %s whispered: ", Usernames.find(theSender)->second.c_str());
+	printf("This is it %s ", buffer);
+	strcat_s(client_id, buffersize , theBuffer);
+	strcpy_s(packet.Message, client_id);
+	//Copy the message to the packet.
+	//Attach the message to "User whispers" 
+
+
+
+
+
+	packet.serialize(packet_data);
+
+	network->sendToOne(packet_data, packet_size, theReceiver);
 }

@@ -87,7 +87,7 @@ void ClientGame::update()
 
 
 			case TALK:
-
+				flush(std::cout);
 				std::cout << packet.Message << std::endl;
 				std::cout << std::endl;
 				OutName = true;
@@ -133,11 +133,12 @@ void ClientGame::GetInput()
 	{
 		std::string inputstring;
 		getline(std::cin, inputstring);
-		if (inputstring == "0")
-			exit(0);
-		sprintf_s(MessageBuffer, inputstring.c_str());
-		sendTalkPackets();
-		OutName = true;
+		if (!inputstring.empty())
+		{
+			sprintf_s(MessageBuffer, inputstring.c_str());
+			sendTalkPackets();
+			OutName = true;
+		}
 	}
 	if (OutName)
 	{

@@ -27,6 +27,7 @@ public:
 	void sendTalkPackets(char * buffer, unsigned int buffersize, unsigned int id_client, bool mode);
 	//Send talk packets to everyone but the person that called it or the person
 	//True is send to everyone, false is send to the user only
+	void sendTalkPackets(char * buffer, unsigned int buffersize, unsigned int theSender, unsigned int theReceiver);
 
 	void ProcessTalkLine(char * inStream, unsigned int size, unsigned int id_clientUse);
 
