@@ -36,6 +36,9 @@ public:
 	void GotoLocation(Vector3 theNewPos, GameObject * go, float speed);
 	bool ReachedLocation(Vector3 thePosReached, GameObject * go);
 
+	void DrawLineCube(int x, int y, int width, int height);
+	void DrawCubeTextured(int x, int y, int size);
+
 private:
 	AI();
 	~AI();
@@ -53,4 +56,6 @@ private:
 
 	GameObject* FetchGO();
 	GameObject* exit;
+
+	Vector3 WayPoints[5];
 };

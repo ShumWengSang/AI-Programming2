@@ -9,6 +9,12 @@ inline const char * const BooltoString(bool b)
 
 void AI::Init()
 {
+	WayPoints[0] = Vector3(80, 70, 0);
+	WayPoints[1] = Vector3(100, 70, 0);
+	WayPoints[2] = Vector3(100, 40, 0);
+	WayPoints[3] = Vector3(80, 40, 0);
+	WayPoints[4] = Vector3(50, 50, 0);
+	
 	Math::InitRNG();
 
 	Alarm = false;
@@ -21,7 +27,7 @@ void AI::Init()
 	
 	go = FetchGO();
 	go->type = GameObject::GO_POLICE;
-	go->pos.Set(80, 50, 0);
+	go->pos.Set(80, 70, 0);
 	go->vel.Set(0, 15, 0);
 	go->CurrentState = GameObject::STATES::PATROLLING;
 
@@ -193,28 +199,34 @@ void AI::GlutIdle()
 				switch (go->CurrentState)
 				{
 				case GameObject::STATES::PATROLLING:
-					if (go->pos.y >= 70)
+
+					if (ReachedLocation(WayPoints[0], go))
 					{
-						go->vel = Vector3(15, 0, 0);
+						GotoLocation(WayPoints[1], go, 15);
 					}
-					if (go->pos.x >= 100)
+					if (ReachedLocation(WayPoints[1], go))
 					{
-						go->vel = Vector3(0, -15, 0);
+						GotoLocation(WayPoints[2], go, 15);
 					}
-					if (go->pos.y <= 40)
+					if (ReachedLocation(WayPoints[2], go))
 					{
-						go->vel = Vector3(-15, 0, 0);
+						GotoLocation(WayPoints[3], go, 15);
 					}
-					if (go->pos.x <= 79)
+					if (ReachedLocation(WayPoints[3], go))
 					{
-						go->vel = Vector3(0, 15, 0);
+						GotoLocation(WayPoints[0], go, 15);
 					}
+
 					if (Alarm)
 						go->CurrentState = GameObject::STATES::MOVING;
 					break;
 				case GameObject::STATES::MOVING:
-					GotoLocation(Vector3(50, 50, 0), go, 15);
+					GotoLocation(WayPoints[4], go, 15);
 					go->color.Set(1, 0, 0);
+					if (ReachedLocation(WayPoints[4], go))
+					{
+						go->CurrentState = GameObject::STATES::CHASING;
+					}
 					break;
 				}
 				break;
@@ -228,6 +240,8 @@ void AI::GlutDisplay()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glColor3f(1, 1, 1);
+
+	DrawLineCube(25, 25, 80, 50);
 
 	for (std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
 	{
@@ -343,4 +357,34 @@ void AI::RenderStringOnScreen(float x, float y, const char* quote)
 	{
 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, quote[i]);
 	}
+}
+
+void AI::DrawLineCube(int x, int y, int width, int height)
+{
+	glLineWidth(5);
+	glBegin(GL_LINE_STRIP);
+	{
+	
+		glColor3f(1, 1, 1);
+		glVertex2f(x, y);
+		glVertex2f(x, y + height);
+		glVertex2f(x + width, y + height);
+		glVertex2f(x + width, y);
+		glVertex2f(x, y);
+		//glLineWidth(1);
+	}
+	glEnd();
+	glLineWidth(1);
+}
+
+void AI::DrawCubeTextured(int x, int y, int size)
+{
+	glPushMatrix();
+	glEnable(GL_TEXTURE_2D);
+	//glBindTexture();
+	glColor3f(0, 0, 1);
+	glTranslatef(x, y, 0);
+	glutSolidCube(size);
+	glEnable(GL_TEXTURE_2D);
+	glPopMatrix();
 }

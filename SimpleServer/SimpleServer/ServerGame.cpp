@@ -263,15 +263,12 @@ void ServerGame::ProcessTalkLine(char * inStream, unsigned int size, unsigned in
 
 			if (Found)
 			{
-				//counter = next_token1;
-				//strncat_s(next_token1, theMessage, 0);
-				printf("hehe token is this now : %s", next_token1);
-				sendTalkPackets(next_token1, sizeof(next_token1) + 1, id_clientUse, (unsigned int)std::stoi(theTarget));
+				sendTalkPackets(next_token1, size, id_clientUse, (unsigned int)std::stoi(theTarget));
 			}
 			else
 			{
-				theMessage = "User not found.";
-				sendTalkPackets(theMessage, sizeof(theMessage), id_clientUse, false);
+				theMessage = "User not found. \n";
+				sendTalkPackets(theMessage, size, id_clientUse, false);
 			}
 
 			return;   // stop here since message is processed!
@@ -286,7 +283,6 @@ void ServerGame::sendTalkPackets(char * buffer, unsigned int buffersize, unsigne
 {
 	//overloaded function for send talk packets.
 	std::string theMessage(buffer);
-	theMessage += "0";
 
 	const unsigned int packet_size = sizeof(Packet);
 	char packet_data[packet_size];
@@ -295,15 +291,12 @@ void ServerGame::sendTalkPackets(char * buffer, unsigned int buffersize, unsigne
 
 	char client_id[MAX_MESSAGE_SIZE];
 
-
-	char theBuffer[MAX_MESSAGE_SIZE];
-	strcpy_s(theBuffer, theMessage.c_str());
 	//Quick hot fix for error "string not null terminated"
+	//theBuffer[MAX_MESSAGE_SIZE - 1] = '\0';
 
-	const char * test = theMessage.c_str();
 	sprintf_s(client_id, "User %s whispered: ", Usernames.find(theSender)->second.c_str());
-	printf("This is it %s ", buffer);
-	strcat_s(client_id, buffersize , theBuffer);
+
+	strcat_s(client_id, buffersize, buffer);
 	strcpy_s(packet.Message, client_id);
 	//Copy the message to the packet.
 	//Attach the message to "User whispers" 

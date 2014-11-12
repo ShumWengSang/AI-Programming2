@@ -4,8 +4,7 @@
 //Tutorial followed and expanded from http://www.codeproject.com/Articles/412511/Simple-client-server-network-using-Cplusplus-and-W
 //Used and modified by Shum Weng Sang
 //******************************************************************************************************
-
-
+#include <signal.h>
 #include "stdafx.h"
 #include "ServerGame.h"
 #include "ClientGame.h"
@@ -19,6 +18,12 @@ void clientInputLoop(void *);
 ServerGame * server;
 ClientGame * client;
 
+void my_handler(int s)
+{
+	printf("Caught signal %d\n", s);
+	exit(1);
+}
+
 int main()
 {
 
@@ -26,7 +31,7 @@ int main()
 	server = new ServerGame();
 	if (server != NULL)
 	// create thread with arbitrary argument for the run function
-	  _beginthread( serverLoop, 0, (void*)12);
+	  _beginthread( serverLoop, 0, NULL);
 
 	printf("IP address to contact. Press 1 to let the IP address be your own computer \n");
 	printf("Press 0 at any moment to quit \n");
@@ -41,7 +46,7 @@ int main()
 	else
 		client = new ClientGame(IPaddress);
 
-	_beginthread( clientInputLoop, 0, (void*)12);
+	_beginthread( clientInputLoop, 0, NULL);
 
 	clientLoop();
 
@@ -60,6 +65,7 @@ void serverLoop(void * arg)
     while(true) 
     {
         server->update();
+		Sleep(1000);
     }
 	_endthread();
 }
@@ -70,6 +76,7 @@ void clientLoop()
     {
         //do game stuff
         client->update();
+		Sleep(1000);
     }
 	_endthread();
 }
