@@ -228,6 +228,8 @@ void AI::GlutIdle()
 						go->CurrentState = GameObject::STATES::CHASING;
 					}
 					break;
+				case GameObject::STATES::CHASING:
+					break;
 				}
 				break;
 			}
