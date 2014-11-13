@@ -72,7 +72,7 @@ void ServerGame::receiveFromClients()
 
                 case INIT_CONNECTION:
 
-                    printf("server received init packet from client\n");
+                    //printf("server received init packet from client\n");
 
 					char Buffer[100];
 					//Buffer to hold char values of client id
@@ -84,7 +84,7 @@ void ServerGame::receiveFromClients()
 
                 case ACTION_EVENT:
 
-                    printf("server received action event packet from client\n");
+                    //printf("server received action event packet from client\n");
 
                     break;
 
