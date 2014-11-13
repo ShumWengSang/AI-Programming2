@@ -4,12 +4,13 @@
 //Tutorial followed and expanded from http://www.codeproject.com/Articles/412511/Simple-client-server-network-using-Cplusplus-and-W
 //Used and modified by Shum Weng Sang
 //******************************************************************************************************
-#include <signal.h>
 #include "stdafx.h"
 #include "ServerGame.h"
 #include "ClientGame.h"
 // used for multi-threading
 #include <process.h>
+#include <windows.h> 
+#include <stdio.h> 
 
 void serverLoop(void *);
 void clientLoop(void);
@@ -18,15 +19,34 @@ void clientInputLoop(void *);
 ServerGame * server;
 ClientGame * client;
 
-void my_handler(int s)
+bool EndThreads = false;
+
+BOOL CtrlHandler(DWORD fdwCtrlType)
 {
-	printf("Caught signal %d\n", s);
-	exit(1);
+	switch (fdwCtrlType)
+	{
+
+		// CTRL-CLOSE: confirm that the user wants to exit. 
+	case CTRL_CLOSE_EVENT:
+		EndThreads = true;
+		if (client != NULL)
+		{
+			client->sendDCPackets();
+			delete client;
+		}
+
+		if (server != NULL)
+			delete server;
+		return(TRUE);
+
+	default:
+		return FALSE;
+	}
 }
 
 int main()
 {
-
+	SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);
 	// initialize the server
 	server = new ServerGame();
 	if (server != NULL)
@@ -46,6 +66,8 @@ int main()
 	else
 		client = new ClientGame(IPaddress);
 
+
+
 	_beginthread( clientInputLoop, 0, NULL);
 
 	clientLoop();
@@ -64,8 +86,10 @@ void serverLoop(void * arg)
 { 
     while(true) 
     {
+		if (EndThreads)
+			break;
         server->update();
-		Sleep(1000);
+		Sleep(10);
     }
 	_endthread();
 }
@@ -74,9 +98,11 @@ void clientLoop()
 {
     while(true)
     {
+		if (EndThreads)
+			break;
         //do game stuff
         client->update();
-		Sleep(1000);
+		Sleep(10);
     }
 	_endthread();
 }
@@ -85,6 +111,8 @@ void clientInputLoop(void *)
 {
 	while (true)
 	{
+		if (EndThreads)
+			break;
 		client->GetInput();
 	}
 	_endthread();

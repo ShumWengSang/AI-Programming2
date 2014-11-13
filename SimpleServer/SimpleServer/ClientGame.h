@@ -37,5 +37,6 @@ public:
 	std::string username;
 
 	bool OutName;
+	BOOL CtrlHandler(DWORD fdwCtrlType);
 };
 

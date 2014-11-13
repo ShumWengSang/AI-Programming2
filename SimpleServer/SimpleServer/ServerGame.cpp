@@ -39,18 +39,26 @@ void ServerGame::receiveFromClients()
     // go through all clients
     std::map<unsigned int, SOCKET>::iterator iter;
 
-    for(iter = network->sessions.begin(); iter != network->sessions.end(); iter++)
+	for (iter = network->sessions.begin(); iter != network->sessions.end();)
     {
         int data_length = network->receiveData(iter->first, network_data);
 
         if (data_length < 0) 
         {
+			iter++;
             //no data recieved
             continue;
         }
 		if (data_length == 0)
 		{
-			printf("Data closed GRACEFULLY LOL \n");
+			printf("I HAVE RECEIVED DC CONNECT \n");
+
+			char theMessage[MAX_MESSAGE_SIZE];
+			sprintf_s(theMessage, "%s has disconnected.", Usernames.find(iter->first)->second.c_str());
+			sendTalkPackets(theMessage, sizeof(theMessage), iter->first, true);
+			closesocket(iter->second);
+			Usernames.erase(iter->first);
+			iter = network->sessions.erase(iter);
 			continue;
 		}
 
@@ -88,11 +96,12 @@ void ServerGame::receiveFromClients()
 					break;
 
 				case DISCONNECTING:
-					printf("I HAVE RECEIVED DC CONNECT");
+					printf("I HAVE RECEIVED DC CONNECT /n");
 					char theMessage[MAX_MESSAGE_SIZE];
 					sprintf_s(theMessage, "%s has disconnected.", Usernames.find(iter->first)->second.c_str());
-					network->sessions.erase(iter);
+					closesocket(iter->second);
 					Usernames.erase(iter->first);
+					iter = network->sessions.erase(iter);
 
 					break;
                 default:
@@ -102,6 +111,7 @@ void ServerGame::receiveFromClients()
                     break;
             }
         }
+		iter++;
     }
 }
 
@@ -243,7 +253,6 @@ void ServerGame::ProcessTalkLine(char * inStream, unsigned int size, unsigned in
 			char * next_token1 = NULL;
 			char * theWholeMessage = &(inStream[3]);
 			char * theMessage;
-			char * counter;
 
 			theTarget = strtok_s(theWholeMessage, " ",&next_token1);
 

@@ -149,16 +149,14 @@ void ClientGame::GetInput()
 
 void ClientGame::sendDCPackets()
 {
+	// send disconnect packet
 	const unsigned int packet_size = sizeof(Packet);
 	char packet_data[packet_size];
 
 	Packet packet;
-	packet.packet_type = DISCONNECTING;
+	packet.packet_type = INIT_CONNECTION;
+
 	packet.serialize(packet_data);
 
-	int iResult = NetworkServices::sendMessage(network->ConnectSocket, packet_data, packet_size);
-	if (iResult == SOCKET_ERROR)
-	{
-		printf("Message not sent by client.");
-	}
+	//NetworkServices::sendMessage(network->ConnectSocket, packet_data, packet_size);
 }

@@ -1,8 +1,8 @@
 #pragma once
 #include <string.h>
 
-#define MAX_PACKET_SIZE 1000000
-#define MAX_MESSAGE_SIZE 1000
+#define MAX_PACKET_SIZE 500
+#define MAX_MESSAGE_SIZE 100
 
 enum PacketTypes {
 
