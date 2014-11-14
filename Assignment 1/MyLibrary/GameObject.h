@@ -8,7 +8,7 @@ struct GameObject
 		GO_NONE = 0,
 		GO_POLICE,
 		GO_ROBBER,
-		GO_BULLET,
+		GO_WAYPOINTS,
 		GO_WALL,
 		GO_EXIT,
 		GO_TOTAL //must be last
@@ -34,6 +34,10 @@ struct GameObject
 	float mass;
 	Vector3 color;
 	Vector3 normal;
+
+	int Target;
+	bool TargetLocked;
+	Vector3 TargetPos;
 
 	GameObject(GAMEOBJECT_TYPE typeValue = GO_NONE);
 	~GameObject();

@@ -9,32 +9,71 @@ inline const char * const BooltoString(bool b)
 
 void AI::Init()
 {
+	srand(time(NULL));
+	GameObject * go;
+	Math::InitRNG();
+
+
 	WayPoints[0] = Vector3(80, 70, 0);
 	WayPoints[1] = Vector3(100, 70, 0);
 	WayPoints[2] = Vector3(100, 40, 0);
 	WayPoints[3] = Vector3(80, 40, 0);
 	WayPoints[4] = Vector3(50, 50, 0);
 	
-	Math::InitRNG();
+
+
+	for (int i = 0; i < 5; i++)
+	{
+		go = FetchGO();
+		go->type = GameObject::GO_WAYPOINTS;
+		go->pos.Set(WayPoints[i]);
+		go->color.Set(0.5, 0.5, 1);
+		//go->scale.Set(5, 5, 5);
+	}
 
 	Alarm = false;
 	
-	GameObject * go;
+
+
 	go = FetchGO();
 	go->type = GameObject::GO_ROBBER;
 	go->pos.Set(70, 50, 0);
 	go->CurrentState = GameObject::STATES::STEALING;
 	
 	go = FetchGO();
+	go->type = GameObject::GO_ROBBER;
+	go->pos.Set(70, 20, 0);
+	go->CurrentState = GameObject::STATES::STEALING;
+
+	go = FetchGO();
+	go->type = GameObject::GO_ROBBER;
+	go->pos.Set(70, 40, 0);
+	go->CurrentState = GameObject::STATES::STEALING;
+
+	go = FetchGO();
 	go->type = GameObject::GO_POLICE;
 	go->pos.Set(80, 70, 0);
 	go->vel.Set(0, 15, 0);
 	go->CurrentState = GameObject::STATES::PATROLLING;
+	go->TargetLocked = false;
 
+
+	go = FetchGO();
+	go->type = GameObject::GO_POLICE;
+	go->pos.Set(80, 60, 0);
+	go->vel.Set(0, 15, 0);
+	go->CurrentState = GameObject::STATES::PATROLLING;
+	go->TargetLocked = false;
 
 	exit = FetchGO();
 	exit->type = GameObject::GO_EXIT;
 	exit->pos.Set(20, 60, 0);
+
+	for (std::vector<GameObject *>::iterator iter2 = m_goList.begin(); iter2 != m_goList.end(); ++iter2)
+	{
+		if ((*iter2)->type == GameObject::GO_ROBBER)
+			robbers.push_back((*iter2));
+	}
 }
 
 void AI::Exit()
@@ -174,8 +213,6 @@ void AI::GlutIdle()
 			//Code to handle out of bound game objects
 			switch (go->type)
 			{
-			case GameObject::GO_BULLET:
-				break;
 			case GameObject::GO_ROBBER:
 				if (go->mass < 100) 
 					go->CurrentState = GameObject::STATES::STEALING;
@@ -225,10 +262,31 @@ void AI::GlutIdle()
 					go->color.Set(1, 0, 0);
 					if (ReachedLocation(WayPoints[4], go))
 					{
+						go->vel.Set(0, 0, 0);
 						go->CurrentState = GameObject::STATES::CHASING;
 					}
 					break;
 				case GameObject::STATES::CHASING:
+					
+					if (go->TargetLocked)
+					{
+						//if (!(robbers[go->Target]->pos == go->TargetPos))
+						if (!(robbers[go->Target]->active))
+						{
+
+							go->TargetLocked = false;
+							std::cout << "Target change" << std::endl;
+						}
+					}
+
+					if (!go->TargetLocked)
+					{
+						go->Target = rand() % robbers.size();
+						go->TargetLocked = true;
+					}
+					GotoLocation(robbers[go->Target]->pos, go, 15);
+					go->TargetPos = robbers[go->Target]->pos/* + robbers[go->Target]->vel*/;
+
 					break;
 				}
 				break;
@@ -243,7 +301,8 @@ void AI::GlutDisplay()
 
 	glColor3f(1, 1, 1);
 
-	DrawLineCube(25, 25, 80, 50);
+	DrawLineCube(10, 10, 120, 80);
+	
 
 	for (std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
 	{
@@ -331,12 +390,12 @@ void AI::DrawObject(GameObject *go)
 			glutSolidSphere(1, 10, 10);
 		glPopMatrix();
 		break;
-	case GameObject::GO_BULLET:
+	case GameObject::GO_WAYPOINTS:
 		glPushMatrix();
 			glColor3f(1, 1, 1);
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
 			glScalef(go->scale.x, go->scale.y, go->scale.z);
-			glutSolidSphere(0.2, 10, 10);
+			glutSolidSphere(1, 10, 10);
 		glPopMatrix();
 		break;
 	case GameObject::GO_EXIT:
@@ -386,7 +445,12 @@ void AI::DrawCubeTextured(int x, int y, int size)
 	//glBindTexture();
 	glColor3f(0, 0, 1);
 	glTranslatef(x, y, 0);
-	glutSolidCube(size);
+	glBegin(GL_QUADS);
+		glVertex2f(x, y);
+		glVertex2f(x + size, y);
+		glVertex2f(x + size, y + size);
+		glVertex2f(x, y + size);
+	glEnd();
 	glEnable(GL_TEXTURE_2D);
 	glPopMatrix();
 }

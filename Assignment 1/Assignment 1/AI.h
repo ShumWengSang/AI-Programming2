@@ -1,5 +1,6 @@
 #pragma once
-
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 #include <iostream>
 #include <vector>
 #include "Vector3.h"
@@ -7,7 +8,7 @@
 #include "GameObject.h"
 #include "freeglut.h"
 
-#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
+//#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
 //The above will suppress the console application from opening
 
 class AI
@@ -58,4 +59,5 @@ private:
 	GameObject* exit;
 
 	Vector3 WayPoints[5];
+	std::vector<GameObject *> robbers;
 };
