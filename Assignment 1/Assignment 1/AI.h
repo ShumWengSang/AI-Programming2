@@ -11,6 +11,16 @@
 //#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
 //The above will suppress the console application from opening
 
+typedef struct												// Create A Structure
+{
+	GLubyte	*imageData;										// Image Data (Up To 32 Bits)
+	GLuint	bpp;											// Image Color Depth In Bits Per Pixel.
+	GLuint	width;											// Image Width
+	GLuint	height;											// Image Height
+	GLuint	texID;											// Texture ID Used To Select A Texture
+	GLuint	frameNumbers;									// Number of frames in the texture
+} TextureImage;												// Structure Name
+
 class AI
 {
 public:
@@ -37,6 +47,7 @@ public:
 	void GotoLocation(Vector3 theNewPos, GameObject * go, float speed);
 	bool ReachedLocation(Vector3 thePosReached, GameObject * go);
 
+	void DrawSquare(int length);
 	void DrawLineCube(int x, int y, int width, int height);
 	void DrawCubeTextured(int x, int y, int size);
 
@@ -55,9 +66,14 @@ private:
 	int m_score;
 	bool Alarm;
 
+	int robberCount;
+
 	GameObject* FetchGO();
 	GameObject* exit;
-
+	GameObject* money;
 	Vector3 WayPoints[5];
 	std::vector<GameObject *> robbers;
+
+	TextureImage textures[GameObject::GAMEOBJECT_TYPE::GO_TOTAL];
+	bool LoadTGA(TextureImage *texture, char *filename);
 };

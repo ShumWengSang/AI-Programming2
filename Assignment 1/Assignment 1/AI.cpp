@@ -13,11 +13,15 @@ void AI::Init()
 	GameObject * go;
 	Math::InitRNG();
 
+	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_ROBBER], "images/robber.tga");
+	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_POLICE], "images/police.tga");
+	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_MONEY], "images/money.tga");
+	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_EXIT], "images/exit.tga");
 
-	WayPoints[0] = Vector3(80, 70, 0);
-	WayPoints[1] = Vector3(100, 70, 0);
-	WayPoints[2] = Vector3(100, 40, 0);
-	WayPoints[3] = Vector3(80, 40, 0);
+	WayPoints[0] = Vector3(90, 60, 0);
+	WayPoints[1] = Vector3(110, 60, 0);
+	WayPoints[2] = Vector3(110, 40, 0);
+	WayPoints[3] = Vector3(90, 40, 0);
 	WayPoints[4] = Vector3(50, 50, 0);
 	
 
@@ -33,26 +37,29 @@ void AI::Init()
 
 	Alarm = false;
 	
+	money = FetchGO();
+	money->type = GameObject::GO_MONEY;
+	money->pos.Set(30, 30, 0);
+	money->scale.Set(1, 1, 1);
+
+	exit = FetchGO();
+	exit->type = GameObject::GO_EXIT;
+	exit->pos.Set(6, 50, 0);
 
 
 	go = FetchGO();
 	go->type = GameObject::GO_ROBBER;
-	go->pos.Set(70, 50, 0);
+	go->pos.Set(30, 60, 0);
 	go->CurrentState = GameObject::STATES::STEALING;
 	
 	go = FetchGO();
 	go->type = GameObject::GO_ROBBER;
-	go->pos.Set(70, 20, 0);
-	go->CurrentState = GameObject::STATES::STEALING;
-
-	go = FetchGO();
-	go->type = GameObject::GO_ROBBER;
-	go->pos.Set(70, 40, 0);
+	go->pos.Set(30, 40, 0);
 	go->CurrentState = GameObject::STATES::STEALING;
 
 	go = FetchGO();
 	go->type = GameObject::GO_POLICE;
-	go->pos.Set(80, 70, 0);
+	go->pos.Set(90, 50, 0);
 	go->vel.Set(0, 15, 0);
 	go->CurrentState = GameObject::STATES::PATROLLING;
 	go->TargetLocked = false;
@@ -60,19 +67,20 @@ void AI::Init()
 
 	go = FetchGO();
 	go->type = GameObject::GO_POLICE;
-	go->pos.Set(80, 60, 0);
+	go->pos.Set(90, 60, 0);
 	go->vel.Set(0, 15, 0);
 	go->CurrentState = GameObject::STATES::PATROLLING;
 	go->TargetLocked = false;
 
-	exit = FetchGO();
-	exit->type = GameObject::GO_EXIT;
-	exit->pos.Set(20, 60, 0);
+
+	robberCount = 0;
 
 	for (std::vector<GameObject *>::iterator iter2 = m_goList.begin(); iter2 != m_goList.end(); ++iter2)
 	{
-		if ((*iter2)->type == GameObject::GO_ROBBER)
+		if ((*iter2)->type == GameObject::GO_ROBBER) {
 			robbers.push_back((*iter2));
+			robberCount++;
+		}
 	}
 }
 
@@ -150,6 +158,17 @@ void AI::GlutMouseMove(int x, int y)
 void AI::GlutKeyboard(unsigned char key, int x, int y)
 {
 	switch (key) {
+	case 'm':
+		for (std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
+		{
+			GameObject *go = (GameObject *)*it;
+			if (go->active)
+			{
+				if (go->type == GameObject::GO_ROBBER)
+					go->money = 100;
+			}
+		}
+		break;
 	case ' ':
 		Alarm = true;
 		break;
@@ -214,7 +233,7 @@ void AI::GlutIdle()
 			switch (go->type)
 			{
 			case GameObject::GO_ROBBER:
-				if (go->mass < 100) 
+				if (go->money < 100) 
 					go->CurrentState = GameObject::STATES::STEALING;
 				else 
 					go->CurrentState = GameObject::STATES::RUNNING;
@@ -222,15 +241,25 @@ void AI::GlutIdle()
 				switch (go->CurrentState) 
 				{
 				case GameObject::STATES::STEALING:
-					go->mass += 1;
+					//go->money += 1;
+					GotoLocation(money->pos, go, 15);
+					if (ReachedLocation(money->pos, go))
+						go->money++;
+
 					break;
+
 				case GameObject::STATES::RUNNING:
 					//go->vel.Set();
 					//Vector3 temp = (exit->pos - go->pos).Normalized;
 					go->vel = (exit->pos - go->pos).Normalized() * 15;
+					if ((go->pos - exit->pos).Length() < 5) {
+						go->active = false;
+						robberCount--;
+					}
 					break;
 				}
 				break;
+
 			case GameObject::GO_POLICE:
 
 				switch (go->CurrentState)
@@ -266,27 +295,43 @@ void AI::GlutIdle()
 						go->CurrentState = GameObject::STATES::CHASING;
 					}
 					break;
-				case GameObject::STATES::CHASING:
-					
+				case GameObject::STATES::CHASING:		
+
+
 					if (go->TargetLocked)
 					{
 						//if (!(robbers[go->Target]->pos == go->TargetPos))
 						if (!(robbers[go->Target]->active))
 						{
-
 							go->TargetLocked = false;
 							std::cout << "Target change" << std::endl;
 						}
 					}
-
-					if (!go->TargetLocked)
+					if (!go->TargetLocked && robberCount > 0)
 					{
 						go->Target = rand() % robbers.size();
 						go->TargetLocked = true;
 					}
-					GotoLocation(robbers[go->Target]->pos, go, 15);
-					go->TargetPos = robbers[go->Target]->pos/* + robbers[go->Target]->vel*/;
 
+					if (robberCount == 0) {
+						GotoLocation(exit->pos, go, 15);
+						go->TargetLocked = false;
+					}
+					else
+					{
+						GotoLocation(robbers[go->Target]->pos, go, 15);
+						go->TargetPos = robbers[go->Target]->pos/* + robbers[go->Target]->vel*/;
+					}
+
+					if ((go->pos - robbers[go->Target]->pos).Length() < 5) {
+						if (robbers[go->Target]->active) {
+							robbers[go->Target]->active = false;
+							go->TargetLocked = false;
+							robberCount--;
+						}
+					}
+
+					
 					break;
 				}
 				break;
@@ -301,7 +346,11 @@ void AI::GlutDisplay()
 
 	glColor3f(1, 1, 1);
 
-	DrawLineCube(10, 10, 120, 80);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	DrawLineCube(6, 10, 120, 80);
 	
 
 	for (std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
@@ -313,13 +362,13 @@ void AI::GlutDisplay()
 		}
 	}
 
-	//glColor3f(1.0, 1.0, 1.0);
-	//char temp[64];
-	//sprintf_s(temp, "FPS: %.2f", m_fps);
-	//RenderStringOnScreen(0, 94, temp);
+	glColor3f(1.0, 1.0, 1.0);
+	char temp[64];
+	sprintf_s(temp, "Robbers: %d", robberCount);
+	RenderStringOnScreen(0, 94, temp);
 	//sprintf_s(temp, "Simulation Speed: %.1f", m_speed);
 	//RenderStringOnScreen(0, 90, temp);
-	//sprintf_s(temp, "Mass: %.1f", m_ship->mass);
+	//sprintf_s(temp, "money: %.1f", m_ship->money);
 	//RenderStringOnScreen(0, 86, temp);
 
 	////Exercise 4: Render m_lives and m_score
@@ -330,6 +379,10 @@ void AI::GlutDisplay()
 
 	glutSwapBuffers();
 	glutPostRedisplay();
+
+	glDisable(GL_BLEND);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
 }
 
 void AI::GotoLocation(Vector3 theNewPos, GameObject * go, float speed)
@@ -351,43 +404,47 @@ void AI::DrawObject(GameObject *go)
 	{
 	case GameObject::GO_ROBBER:
 		glPushMatrix();
-			glColor3f(1, 0, 0);
+			/*glColor3f(1, 0, 0);
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
 			glScalef(go->scale.x, go->scale.y, go->scale.z);
-			glutSolidSphere(1, 10, 10);
-			
-			glTranslatef(0, 3, 0); //Bar Outline
+			glutSolidSphere(1, 10, 10);*/
+			glColor3f(1, 1, 1);
+			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
+			glScalef(go->scale.x, go->scale.y, go->scale.z);
+			glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_ROBBER].texID);
+			DrawSquare(4);
+
+			glTranslatef(0, 4, 0); //Bar Outline
 			glColor3f(0, 1, 0);
 			glBegin(GL_LINES);
-				glVertex3f(-3, -1, 0);
-				glVertex3f(3, -1, 0);
-
-				glVertex3f(3, 1, 0);
-				glVertex3f(-3, 1, 0);
-
-				glVertex3f(3, -1, 0);
-				glVertex3f(3, 1, 0);
-
-				glVertex3f(-3, -1, 0);
-				glVertex3f(-3, 1, 0);
+				glVertex3f(-3, -1, 0);	glVertex3f(3, -1, 0);
+				glVertex3f(3, 1, 0);	glVertex3f(-3, 1, 0);
+				glVertex3f(3, -1, 0);	glVertex3f(3, 1, 0);
+				glVertex3f(-3, -1, 0);	glVertex3f(-3, 1, 0);
 			glEnd();
 
 			glBegin(GL_QUADS);
 				glVertex3f(-3, 1, 0);
 				glVertex3f(-3, -1, 0);
-				//glVertex3f(2, -1, 0);
-				//glVertex3f(2, 1, 0);
-				glVertex3f(-3 + 0.06 * go->mass, -1, 0);
-				glVertex3f(-3 + 0.06 * go->mass, 1, 0);
+				glVertex3f(-3 + 0.06 * go->money, -1, 0);
+				glVertex3f(-3 + 0.06 * go->money, 1, 0);
 			glEnd();
 		glPopMatrix();
 		break;
 	case GameObject::GO_POLICE:
-		glPushMatrix();
+		/*glPushMatrix();
 			glColor3f(0, 0, 1);
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
 			glScalef(go->scale.x, go->scale.y, go->scale.z);
 			glutSolidSphere(1, 10, 10);
+		glPopMatrix();*/
+
+		glPushMatrix();
+			glColor3f(1, 1, 1);
+			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
+			glScalef(go->scale.x, go->scale.y, go->scale.z);
+			glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_POLICE].texID);
+			DrawSquare(4);
 		glPopMatrix();
 		break;
 	case GameObject::GO_WAYPOINTS:
@@ -398,12 +455,29 @@ void AI::DrawObject(GameObject *go)
 			glutSolidSphere(1, 10, 10);
 		glPopMatrix();
 		break;
+	case GameObject::GO_MONEY:
+		glPushMatrix();
+			glColor3f(1, 1, 1);
+			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
+			glScalef(go->scale.x, go->scale.y, go->scale.z);
+			glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_MONEY].texID);
+			DrawSquare(10);
+		glPopMatrix();
+		break;
 	case GameObject::GO_EXIT:
 		glPushMatrix();
-		glColor3f(1, 1, 1);
-		glTranslatef(go->pos.x, go->pos.y, go->pos.z);
-		glScalef(go->scale.x, go->scale.y, go->scale.z);
-		glutSolidCube(2);
+			glColor3f(1, 1, 1);
+			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
+			glScalef(go->scale.x, go->scale.y, go->scale.z);
+			glRotatef(90, 0, 0, 1);
+			glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_EXIT].texID);
+			glBegin(GL_QUADS);
+				glTexCoord2f(0, 0);		glVertex2f(-9, -3);
+				glTexCoord2f(1, 0);		glVertex2f(9, -3);
+				glTexCoord2f(1, 1);		glVertex2f(9, 3);
+				glTexCoord2f(0, 1);		glVertex2f(-9, 3);
+			glEnd();
+		//glutSolidCube(2);
 		glPopMatrix();
 		break;
 	}
@@ -418,6 +492,16 @@ void AI::RenderStringOnScreen(float x, float y, const char* quote)
 	{
 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, quote[i]);
 	}
+}
+
+void AI::DrawSquare(int length)
+{
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 0);		glVertex2f(-length * 0.5, -length * 0.5);
+		glTexCoord2f(1, 0);		glVertex2f(length * 0.5, -length * 0.5);
+		glTexCoord2f(1, 1);		glVertex2f(length * 0.5, length * 0.5);
+		glTexCoord2f(0, 1);		glVertex2f(-length * 0.5, length * 0.5);
+	glEnd();
 }
 
 void AI::DrawLineCube(int x, int y, int width, int height)
@@ -453,4 +537,85 @@ void AI::DrawCubeTextured(int x, int y, int size)
 	glEnd();
 	glEnable(GL_TEXTURE_2D);
 	glPopMatrix();
+}
+
+bool AI::LoadTGA(TextureImage *texture, char *filename)			// Loads A TGA File Into Memory
+{
+	GLubyte		TGAheader[12] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };	// Uncompressed TGA Header
+	GLubyte		TGAcompare[12];								// Used To Compare TGA Header
+	GLubyte		header[6];									// First 6 Useful Bytes From The Header
+	GLuint		bytesPerPixel;								// Holds Number Of Bytes Per Pixel Used In The TGA File
+	GLuint		imageSize;									// Used To Store The Image Size When Setting Aside Ram
+	GLuint		temp;										// Temporary Variable
+	GLuint		type = GL_RGBA;								// Set The Default GL Mode To RBGA (32 BPP)
+
+	FILE *file = fopen(filename, "rb");						// Open The TGA File
+
+	if (file == NULL ||										// Does File Even Exist?
+		fread(TGAcompare, 1, sizeof(TGAcompare), file) != sizeof(TGAcompare) ||	// Are There 12 Bytes To Read?
+		memcmp(TGAheader, TGAcompare, sizeof(TGAheader)) != 0 ||	// Does The Header Match What We Want?
+		fread(header, 1, sizeof(header), file) != sizeof(header))				// If So Read Next 6 Header Bytes
+	{
+		if (file == NULL)									// Did The File Even Exist? *Added Jim Strong*
+			return false;									// Return False
+		else
+		{
+			fclose(file);									// If Anything Failed, Close The File
+			return false;									// Return False
+		}
+	}
+
+	texture->width = header[1] * 256 + header[0];			// Determine The TGA Width	(highbyte*256+lowbyte)
+	texture->height = header[3] * 256 + header[2];			// Determine The TGA Height	(highbyte*256+lowbyte)
+
+	if (texture->width <= 0 ||								// Is The Width Less Than Or Equal To Zero
+		texture->height <= 0 ||								// Is The Height Less Than Or Equal To Zero
+		(header[4] != 24 && header[4] != 32))					// Is The TGA 24 or 32 Bit?
+	{
+		fclose(file);										// If Anything Failed, Close The File
+		return false;										// Return False
+	}
+
+	texture->bpp = header[4];							// Grab The TGA's Bits Per Pixel (24 or 32)
+	bytesPerPixel = texture->bpp / 8;						// Divide By 8 To Get The Bytes Per Pixel
+	imageSize = texture->width*texture->height*bytesPerPixel;	// Calculate The Memory Required For The TGA Data
+
+	texture->imageData = (GLubyte *)malloc(imageSize);		// Reserve Memory To Hold The TGA Data
+
+	if (texture->imageData == NULL ||							// Does The Storage Memory Exist?
+		fread(texture->imageData, 1, imageSize, file) != imageSize)	// Does The Image Size Match The Memory Reserved?
+	{
+		if (texture->imageData != NULL)						// Was Image Data Loaded
+			free(texture->imageData);						// If So, Release The Image Data
+
+		fclose(file);										// Close The File
+		return false;										// Return False
+	}
+
+	for (GLuint i = 0; i<int(imageSize); i += bytesPerPixel)		// Loop Through The Image Data
+	{														// Swaps The 1st And 3rd Bytes ('R'ed and 'B'lue)
+		temp = texture->imageData[i];							// Temporarily Store The Value At Image Data 'i'
+		texture->imageData[i] = texture->imageData[i + 2];	// Set The 1st Byte To The Value Of The 3rd Byte
+		texture->imageData[i + 2] = temp;					// Set The 3rd Byte To The Value In 'temp' (1st Byte Value)
+	}
+
+	fclose(file);											// Close The File
+
+	// Build A Texture From The Data
+	glGenTextures(1, &texture[0].texID);					// Generate OpenGL texture IDs
+
+	glBindTexture(GL_TEXTURE_2D, texture[0].texID);			// Bind Our Texture
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// Linear Filtered
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// Linear Filtered
+
+	if (texture[0].bpp == 24)									// Was The TGA 24 Bits
+	{
+		type = GL_RGB;										// If So Set The 'type' To GL_RGB
+	}
+
+	texture->frameNumbers = texture->width / texture->height;
+
+	glTexImage2D(GL_TEXTURE_2D, 0, type, texture[0].width, texture[0].height, 0, type, GL_UNSIGNED_BYTE, texture[0].imageData);
+
+	return true;											// Texture Building Went Ok, Return True
 }

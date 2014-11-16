@@ -11,6 +11,7 @@ struct GameObject
 		GO_WAYPOINTS,
 		GO_WALL,
 		GO_EXIT,
+		GO_MONEY,
 		GO_TOTAL //must be last
 	};
 
@@ -31,7 +32,7 @@ struct GameObject
 	Vector3 vel;
 	Vector3 scale;
 	bool active;
-	float mass;
+	float money;
 	Vector3 color;
 	Vector3 normal;
 
