@@ -39,7 +39,7 @@ void AI::Init()
 	
 	money = FetchGO();
 	money->type = GameObject::GO_MONEY;
-	money->pos.Set(30, 30, 0);
+	money->pos.Set(40, 30, 0);
 	money->scale.Set(1, 1, 1);
 
 	exit = FetchGO();
@@ -172,6 +172,15 @@ void AI::GlutKeyboard(unsigned char key, int x, int y)
 	case ' ':
 		Alarm = true;
 		break;
+	case 'r':
+		while (m_goList.size() > 0)
+		{
+			GameObject *go = m_goList.back();
+			delete go;
+			m_goList.pop_back();
+		}
+		Init();
+		break;
 	}
 }
 
@@ -251,10 +260,16 @@ void AI::GlutIdle()
 				case GameObject::STATES::RUNNING:
 					//go->vel.Set();
 					//Vector3 temp = (exit->pos - go->pos).Normalized;
-					go->vel = (exit->pos - go->pos).Normalized() * 15;
+					GotoLocation(exit->pos, go, 15.f - 5);
 					if ((go->pos - exit->pos).Length() < 5) {
-						go->active = false;
-						robberCount--;
+						if (Alarm) {
+							go->active = false;
+							robberCount--;
+						}
+						else {
+							go->money = 0;
+
+						}
 					}
 					break;
 				}
@@ -288,7 +303,6 @@ void AI::GlutIdle()
 					break;
 				case GameObject::STATES::MOVING:
 					GotoLocation(WayPoints[4], go, 15);
-					go->color.Set(1, 0, 0);
 					if (ReachedLocation(WayPoints[4], go))
 					{
 						go->vel.Set(0, 0, 0);
@@ -321,15 +335,18 @@ void AI::GlutIdle()
 					{
 						GotoLocation(robbers[go->Target]->pos, go, 15);
 						go->TargetPos = robbers[go->Target]->pos/* + robbers[go->Target]->vel*/;
-					}
 
-					if ((go->pos - robbers[go->Target]->pos).Length() < 5) {
-						if (robbers[go->Target]->active) {
-							robbers[go->Target]->active = false;
-							go->TargetLocked = false;
-							robberCount--;
+						if ((go->pos - robbers[go->Target]->pos).Length() < 5) {
+							if (robbers[go->Target]->active) {
+								robbers[go->Target]->active = false;
+								go->TargetLocked = false;
+								robberCount--;
+							}
 						}
 					}
+
+					if (ReachedLocation(exit->pos, go))
+						go->active = false;
 
 					
 					break;
