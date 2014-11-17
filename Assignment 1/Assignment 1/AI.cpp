@@ -303,14 +303,9 @@ void AI::GlutIdle()
 						go->CurrentState = GameObject::STATES::MOVING;
 					break;
 				case GameObject::STATES::MOVING:
-//<<<<<<< HEAD
-//					/*GotoLocation(thePoints[4].thePoint, go, 15);
-//					if (ReachedLocation(WayPoints[4], go))*/
-//=======
 					GotoLocation(thePoints[4].thePoint, go, 15);
 					go->color.Set(1, 0, 0);
 					if (ReachedLocation(thePoints[4].thePoint, go))
-//>>>>>>> origin/Shawn
 					{
 						go->vel.Set(0, 0, 0);
 						go->CurrentState = GameObject::STATES::CHASING;
@@ -371,7 +366,7 @@ void AI::GlutDisplay()
 	glColor3f(1, 1, 1);
 
 	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
+	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	DrawLineCube(6, 10, 120, 80);
@@ -404,7 +399,7 @@ void AI::GlutDisplay()
 	glutSwapBuffers();
 	glutPostRedisplay();
 
-	glDisable(GL_BLEND);
+	//glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
 }
@@ -427,16 +422,22 @@ void AI::DrawObject(GameObject *go)
 	switch (go->type)
 	{
 	case GameObject::GO_ROBBER:
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		glPushMatrix();
 			/*glColor3f(1, 0, 0);
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
 			glScalef(go->scale.x, go->scale.y, go->scale.z);
 			glutSolidSphere(1, 10, 10);*/
+
 			glColor3f(1, 1, 1);
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
 			glScalef(go->scale.x, go->scale.y, go->scale.z);
 			glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_ROBBER].texID);
 			DrawSquare(4);
+
+			glDisable(GL_BLEND);
 
 			glTranslatef(0, 4, 0); //Bar Outline
 			glColor3f(0, 1, 0);
@@ -447,6 +448,7 @@ void AI::DrawObject(GameObject *go)
 				glVertex3f(-3, -1, 0);	glVertex3f(-3, 1, 0);
 			glEnd();
 
+
 			glBegin(GL_QUADS);
 				glVertex3f(-3, 1, 0);
 				glVertex3f(-3, -1, 0);
@@ -454,8 +456,12 @@ void AI::DrawObject(GameObject *go)
 				glVertex3f(-3 + 0.06 * go->money, 1, 0);
 			glEnd();
 		glPopMatrix();
+		
 		break;
 	case GameObject::GO_POLICE:
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		/*glPushMatrix();
 			glColor3f(0, 0, 1);
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
@@ -470,6 +476,8 @@ void AI::DrawObject(GameObject *go)
 			glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_POLICE].texID);
 			DrawSquare(4);
 		glPopMatrix();
+
+		glDisable(GL_BLEND);
 		break;
 	case GameObject::GO_WAYPOINTS:
 		glPushMatrix();
@@ -480,6 +488,9 @@ void AI::DrawObject(GameObject *go)
 		glPopMatrix();
 		break;
 	case GameObject::GO_MONEY:
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		glPushMatrix();
 			glColor3f(1, 1, 1);
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
@@ -487,8 +498,13 @@ void AI::DrawObject(GameObject *go)
 			glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_MONEY].texID);
 			DrawSquare(10);
 		glPopMatrix();
+
+		glDisable(GL_BLEND);
 		break;
 	case GameObject::GO_EXIT:
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		glPushMatrix();
 			glColor3f(1, 1, 1);
 			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
@@ -503,6 +519,8 @@ void AI::DrawObject(GameObject *go)
 			glEnd();
 		//glutSolidCube(2);
 		glPopMatrix();
+
+		glDisable(GL_BLEND);
 		break;
 	}
 }
