@@ -18,19 +18,29 @@ void AI::Init()
 	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_MONEY], "images/money.tga");
 	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_EXIT], "images/exit.tga");
 
-	WayPoints[0] = Vector3(90, 60, 0);
-	WayPoints[1] = Vector3(110, 60, 0);
-	WayPoints[2] = Vector3(110, 40, 0);
-	WayPoints[3] = Vector3(90, 40, 0);
-	WayPoints[4] = Vector3(50, 50, 0);
+	//WayPoints[0] = Vector3(90, 60, 0);
+	//WayPoints[1] = Vector3(110, 60, 0);
+	//WayPoints[2] = Vector3(110, 40, 0);
+	//WayPoints[3] = Vector3(90, 40, 0);
+	//WayPoints[4] = Vector3(50, 50, 0);
 	
+	thePoints[0].thePoint = Vector3(90, 60, 0);
+	thePoints[1].thePoint = Vector3(110, 60, 0);
+	thePoints[2].thePoint = Vector3(110, 40, 0);
+	thePoints[3].thePoint = Vector3(90, 40, 0);
+	thePoints[4].thePoint = Vector3(50, 50, 0);
 
+	thePoints[0].nextPoint = &thePoints[1];
+	thePoints[1].nextPoint = &thePoints[2];
+	thePoints[2].nextPoint = &thePoints[3];
+	thePoints[3].nextPoint = &thePoints[0];
+	thePoints[4].nextPoint = &thePoints[0];
 
 	for (int i = 0; i < 5; i++)
 	{
 		go = FetchGO();
 		go->type = GameObject::GO_WAYPOINTS;
-		go->pos.Set(WayPoints[i]);
+		go->pos.Set(thePoints[i].thePoint);
 		go->color.Set(0.5, 0.5, 1);
 		//go->scale.Set(5, 5, 5);
 	}
@@ -281,29 +291,35 @@ void AI::GlutIdle()
 				{
 				case GameObject::STATES::PATROLLING:
 
-					if (ReachedLocation(WayPoints[0], go))
+					if (ReachedLocation(thePoints[0].thePoint, go))
 					{
-						GotoLocation(WayPoints[1], go, 15);
+						GotoLocation(thePoints[0].nextPoint->thePoint, go, 15);
 					}
-					if (ReachedLocation(WayPoints[1], go))
+					if (ReachedLocation(thePoints[1].thePoint, go))
 					{
-						GotoLocation(WayPoints[2], go, 15);
+						GotoLocation(thePoints[1].nextPoint->thePoint, go, 15);
 					}
-					if (ReachedLocation(WayPoints[2], go))
+					if (ReachedLocation(thePoints[2].thePoint, go))
 					{
-						GotoLocation(WayPoints[3], go, 15);
+						GotoLocation(thePoints[2].nextPoint->thePoint, go, 15);
 					}
-					if (ReachedLocation(WayPoints[3], go))
+					if (ReachedLocation(thePoints[3].thePoint, go))
 					{
-						GotoLocation(WayPoints[0], go, 15);
+						GotoLocation(thePoints[3].nextPoint->thePoint, go, 15);
 					}
 
 					if (Alarm)
 						go->CurrentState = GameObject::STATES::MOVING;
 					break;
 				case GameObject::STATES::MOVING:
-					GotoLocation(WayPoints[4], go, 15);
-					if (ReachedLocation(WayPoints[4], go))
+//<<<<<<< HEAD
+//					/*GotoLocation(thePoints[4].thePoint, go, 15);
+//					if (ReachedLocation(WayPoints[4], go))*/
+//=======
+					GotoLocation(thePoints[4].thePoint, go, 15);
+					go->color.Set(1, 0, 0);
+					if (ReachedLocation(thePoints[4].thePoint, go))
+//>>>>>>> origin/Shawn
 					{
 						go->vel.Set(0, 0, 0);
 						go->CurrentState = GameObject::STATES::CHASING;

@@ -89,7 +89,7 @@ void serverLoop(void * arg)
 		if (EndThreads)
 			break;
         server->update();
-		Sleep(10);
+		Sleep(100);
     }
 	_endthread();
 }
@@ -102,7 +102,7 @@ void clientLoop()
 			break;
         //do game stuff
         client->update();
-		Sleep(10);
+		Sleep(100);
     }
 	_endthread();
 }
@@ -114,6 +114,7 @@ void clientInputLoop(void *)
 		if (EndThreads)
 			break;
 		client->GetInput();
+		Sleep(100);
 	}
 	_endthread();
 }
