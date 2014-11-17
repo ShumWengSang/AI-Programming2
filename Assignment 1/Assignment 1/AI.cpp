@@ -291,21 +291,12 @@ void AI::GlutIdle()
 				{
 				case GameObject::STATES::PATROLLING:
 
-					if (ReachedLocation(thePoints[0].thePoint, go))
+					for (int i = 0; i < 4; i++)
 					{
-						GotoLocation(thePoints[0].nextPoint->thePoint, go, 15);
-					}
-					if (ReachedLocation(thePoints[1].thePoint, go))
-					{
-						GotoLocation(thePoints[1].nextPoint->thePoint, go, 15);
-					}
-					if (ReachedLocation(thePoints[2].thePoint, go))
-					{
-						GotoLocation(thePoints[2].nextPoint->thePoint, go, 15);
-					}
-					if (ReachedLocation(thePoints[3].thePoint, go))
-					{
-						GotoLocation(thePoints[3].nextPoint->thePoint, go, 15);
+						if (ReachedLocation(thePoints[i].thePoint, go))
+						{
+							GotoLocation(thePoints[i].nextPoint->thePoint, go, 15);
+						}
 					}
 
 					if (Alarm)
