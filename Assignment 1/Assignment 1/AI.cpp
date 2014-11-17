@@ -368,9 +368,9 @@ void AI::GlutDisplay()
 	glEnable(GL_TEXTURE_2D);
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	DrawLineCube(6, 10, 120, 80);
 	//DrawLegend();
+	DrawLineCube(6, 10, 120, 80);
+	DrawLegend();
 
 	for (std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
 	{
@@ -381,10 +381,21 @@ void AI::GlutDisplay()
 		}
 	}
 
+
 	glColor3f(1.0, 1.0, 1.0);
 	char temp[64];
 	sprintf_s(temp, "Robbers: %d", robberCount);
 	RenderStringOnScreen(0, 94, temp);
+
+	sprintf_s(temp, "Police");
+	RenderStringOnScreen(32, 94, temp);
+
+	sprintf_s(temp, "Robbers");
+	RenderStringOnScreen(52, 94, temp);
+
+	sprintf_s(temp, "Money");
+	RenderStringOnScreen(72, 94, temp);
+
 	//sprintf_s(temp, "Simulation Speed: %.1f", m_speed);
 	//RenderStringOnScreen(0, 90, temp);
 	//sprintf_s(temp, "money: %.1f", m_ship->money);
@@ -664,31 +675,38 @@ bool AI::LoadTGA(TextureImage *texture, char *filename)			// Loads A TGA File In
 
 void AI::DrawLegend()
 {
-	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//glEnable(GL_TEXTURE_2D);
 	//Start Drawing of Police
 	glPushMatrix();
 	glColor3f(1, 1, 1);
-	glTranslatef(10,90,0);
+	glTranslatef(30,95,0);
 	glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_POLICE].texID);
 	DrawSquare(4);
 	glPopMatrix();
 	//Stop drawing of Police
 
-	//Start drawing of robbers
-	glColor3f(1, 1, 1);
-	glTranslatef(30, 90, 0);
-	glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_ROBBER].texID);
-	DrawSquare(4);
-	//End drawing of robbers
-
-	//Start draw money
+	////Start drawing of robbers
 	glPushMatrix();
 	glColor3f(1, 1, 1);
-	glTranslatef(50,90,0);
-	glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_MONEY].texID);
-	DrawSquare(10);
+	glTranslatef(50, 95, 0);
+	glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_ROBBER].texID);
+	DrawSquare(4);
 	glPopMatrix();
+	////End drawing of robbers
 
-	glDisable(GL_TEXTURE_2D);
+	////Start draw money
+	glPushMatrix();
+	glColor3f(1, 1, 1);
+	glTranslatef(70,95,0);
+	glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_MONEY].texID);
+	DrawSquare(4);
+	glPopMatrix();
+	//End drawing of money
+
+	//All strings are drawn last at glutdisplay();
+	glDisable(GL_BLEND);
 	//End draw money
 }
