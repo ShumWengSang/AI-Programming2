@@ -370,7 +370,7 @@ void AI::GlutDisplay()
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	DrawLineCube(6, 10, 120, 80);
-	
+	//DrawLegend();
 
 	for (std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
 	{
@@ -660,4 +660,35 @@ bool AI::LoadTGA(TextureImage *texture, char *filename)			// Loads A TGA File In
 	glTexImage2D(GL_TEXTURE_2D, 0, type, texture[0].width, texture[0].height, 0, type, GL_UNSIGNED_BYTE, texture[0].imageData);
 
 	return true;											// Texture Building Went Ok, Return True
+}
+
+void AI::DrawLegend()
+{
+	glEnable(GL_TEXTURE_2D);
+	//Start Drawing of Police
+	glPushMatrix();
+	glColor3f(1, 1, 1);
+	glTranslatef(10,90,0);
+	glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_POLICE].texID);
+	DrawSquare(4);
+	glPopMatrix();
+	//Stop drawing of Police
+
+	//Start drawing of robbers
+	glColor3f(1, 1, 1);
+	glTranslatef(30, 90, 0);
+	glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_ROBBER].texID);
+	DrawSquare(4);
+	//End drawing of robbers
+
+	//Start draw money
+	glPushMatrix();
+	glColor3f(1, 1, 1);
+	glTranslatef(50,90,0);
+	glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_MONEY].texID);
+	DrawSquare(10);
+	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
+	//End draw money
 }

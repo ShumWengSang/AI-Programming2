@@ -57,6 +57,8 @@ public:
 	void DrawLineCube(int x, int y, int width, int height);
 	void DrawCubeTextured(int x, int y, int size);
 
+	void DrawLegend();
+
 private:
 	AI();
 	~AI();
