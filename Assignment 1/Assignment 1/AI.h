@@ -4,9 +4,12 @@
 #include <iostream>
 #include <vector>
 #include "Vector3.h"
-
+#include "irrKlang.h"
 #include "GameObject.h"
 #include "freeglut.h"
+
+
+#pragma comment(lib,"irrKlang.lib")
 
 //#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
 //The above will suppress the console application from opening
@@ -72,7 +75,10 @@ private:
 
 	int m_lives;
 	int m_score;
+
+	//Alarm color and bool for alarm
 	bool Alarm;
+	float Color;
 
 	int robberCount;
 
@@ -86,4 +92,8 @@ private:
 
 	TextureImage textures[GameObject::GAMEOBJECT_TYPE::GO_TOTAL];
 	bool LoadTGA(TextureImage *texture, char *filename);
+
+	//Variables and things regarding to sound
+	irrklang::ISoundEngine* theSoundEngine;
+	irrklang::ISound* AlarmSound;
 };

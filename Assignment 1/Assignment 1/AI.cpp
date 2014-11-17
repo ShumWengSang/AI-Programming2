@@ -9,9 +9,14 @@ inline const char * const BooltoString(bool b)
 
 void AI::Init()
 {
+
 	srand(time(NULL));
 	GameObject * go;
 	Math::InitRNG();
+
+	theSoundEngine = irrklang::createIrrKlangDevice();
+	if (!theSoundEngine)
+		return;		// Error starting up the sound engine
 
 	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_ROBBER], "images/robber.tga");
 	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_POLICE], "images/police.tga");
@@ -126,6 +131,7 @@ AI::AI()
 	, m_speed(1)
 	, m_worldSizeY(100)
 	, m_worldSizeX(m_worldSizeY)
+	, theSoundEngine(NULL)
 {
 }
 
@@ -229,6 +235,15 @@ void AI::GlutIdle()
 		m_fps = frame * 1000.f / (time - lastFPSTime);
 		lastFPSTime = time;
 		frame = 0;
+	}
+	if (Alarm)
+	{
+		if (AlarmSound != NULL)
+		{
+			//AlarmSound = theSoundEngine->play2D("", true);
+		}
+
+		std::cout << "Alarm is blaring." << std::endl;
 	}
 
 	for (std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
