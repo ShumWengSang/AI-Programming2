@@ -14,6 +14,10 @@ void AI::Init()
 	GameObject * go;
 	Math::InitRNG();
 
+	SoundPlaying = false;
+	AlarmColor = 1;
+	AlarmDir = -1;
+
 	theSoundEngine = irrklang::createIrrKlangDevice();
 	if (!theSoundEngine)
 		return;		// Error starting up the sound engine
@@ -29,11 +33,11 @@ void AI::Init()
 	//WayPoints[3] = Vector3(90, 40, 0);
 	//WayPoints[4] = Vector3(50, 50, 0);
 	
-	thePoints[0].thePoint = Vector3(90, 60, 0);
-	thePoints[1].thePoint = Vector3(110, 60, 0);
-	thePoints[2].thePoint = Vector3(110, 40, 0);
-	thePoints[3].thePoint = Vector3(90, 40, 0);
-	thePoints[4].thePoint = Vector3(50, 50, 0);
+	thePoints[0].thePoint = Vector3(90, 80, 0);
+	thePoints[1].thePoint = Vector3(110, 80, 0);
+	thePoints[2].thePoint = Vector3(110, 20, 0);
+	thePoints[3].thePoint = Vector3(90, 20, 0);
+	thePoints[4].thePoint = Vector3(65, 50, 0);
 
 	thePoints[0].nextPoint = &thePoints[1];
 	thePoints[1].nextPoint = &thePoints[2];
@@ -57,6 +61,11 @@ void AI::Init()
 	money->pos.Set(40, 30, 0);
 	money->scale.Set(1, 1, 1);
 
+	money = FetchGO();
+	money->type = GameObject::GO_MONEY;
+	money->pos.Set(40, 60, 0);
+	money->scale.Set(1, 1, 1);
+
 	exit = FetchGO();
 	exit->type = GameObject::GO_EXIT;
 	exit->pos.Set(6, 50, 0);
@@ -73,12 +82,28 @@ void AI::Init()
 	go->CurrentState = GameObject::STATES::STEALING;
 
 	go = FetchGO();
+	go->type = GameObject::GO_ROBBER;
+	go->pos.Set(30, 20, 0);
+	go->CurrentState = GameObject::STATES::STEALING;
+
+	go = FetchGO();
+	go->type = GameObject::GO_ROBBER;
+	go->pos.Set(40, 20, 0);
+	go->CurrentState = GameObject::STATES::STEALING;
+
+	go = FetchGO();
+	go->type = GameObject::GO_POLICE;
+	go->pos.Set(90, 40, 0);
+	go->vel.Set(0, 15, 0);
+	go->CurrentState = GameObject::STATES::PATROLLING;
+	go->TargetLocked = false;
+
+	go = FetchGO();
 	go->type = GameObject::GO_POLICE;
 	go->pos.Set(90, 50, 0);
 	go->vel.Set(0, 15, 0);
 	go->CurrentState = GameObject::STATES::PATROLLING;
 	go->TargetLocked = false;
-
 
 	go = FetchGO();
 	go->type = GameObject::GO_POLICE;
@@ -87,6 +112,20 @@ void AI::Init()
 	go->CurrentState = GameObject::STATES::PATROLLING;
 	go->TargetLocked = false;
 
+
+	go = FetchGO();
+	go->type = GameObject::GO_POLICE;
+	go->pos.Set(110, 60, 0);
+	go->vel.Set(0, 15, 0);
+	go->CurrentState = GameObject::STATES::PATROLLING;
+	go->TargetLocked = false;
+
+	go = FetchGO();
+	go->type = GameObject::GO_POLICE;
+	go->pos.Set(110, 50, 0);
+	go->vel.Set(0, 15, 0);
+	go->CurrentState = GameObject::STATES::PATROLLING;
+	go->TargetLocked = false;
 
 	robberCount = 0;
 
@@ -107,6 +146,8 @@ void AI::Exit()
 		delete go;
 		m_goList.pop_back();
 	}
+	if (theSoundEngine != NULL)
+		theSoundEngine->drop();
 }
 
 GameObject* AI::FetchGO()
@@ -238,12 +279,25 @@ void AI::GlutIdle()
 	}
 	if (Alarm)
 	{
-		if (AlarmSound != NULL)
+		if (!SoundPlaying)
 		{
-			//AlarmSound = theSoundEngine->play2D("", true);
+			SoundPlaying = true;
+			theSoundEngine->play2D("Alarm.wav");
+		}
+		//The below controls the color of the alarm
+		AlarmColor += 0.8 * AlarmDir * dt;
+		if (AlarmColor > 1)
+		{
+			AlarmColor = 1;
+			AlarmDir = -AlarmDir;
+		}
+		if (AlarmColor < 0)
+		{
+			AlarmColor = 0;
+			AlarmDir = -AlarmDir;
 		}
 
-		std::cout << "Alarm is blaring." << std::endl;
+		//std::cout << "Alarm is blaring." << std::endl;
 	}
 
 	for (std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
@@ -384,6 +438,21 @@ void AI::GlutDisplay()
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//DrawLegend();
+	if (Alarm)
+	{
+		//if (theSoundEngine->isCurrentlyPlaying(*theSoundEngine))
+		//{
+		//	theSoundEngine->drop();
+		//}
+		DrawCubeTextured(0, 0, m_worldSizeX, m_worldSizeY, Vector3(AlarmColor, 0, 0), 1, 0);
+	}
+	DrawCubeTextured(30, 5, 5, 80, Vector3(1, 1, 1), 1, 0);
+	if (Alarm)
+	{
+
+		DrawCubeTextured(30, 20, 5, 20, Vector3 (0,0,0) ,1,0);
+	}
+
 	DrawLineCube(6, 10, 120, 80);
 	DrawLegend();
 
@@ -395,6 +464,7 @@ void AI::GlutDisplay()
 			DrawObject(go);
 		}
 	}
+
 
 
 	glColor3f(1.0, 1.0, 1.0);
@@ -590,18 +660,18 @@ void AI::DrawLineCube(int x, int y, int width, int height)
 	glLineWidth(1);
 }
 
-void AI::DrawCubeTextured(int x, int y, int size)
+void AI::DrawCubeTextured(int x, int y, int width, int height, Vector3 color, float alphaColor, int TexID)
 {
 	glPushMatrix();
 	glEnable(GL_TEXTURE_2D);
 	//glBindTexture();
-	glColor3f(0, 0, 1);
+	glColor4f(color.x, color.y, color.z, alphaColor);
 	glTranslatef(x, y, 0);
 	glBegin(GL_QUADS);
 		glVertex2f(x, y);
-		glVertex2f(x + size, y);
-		glVertex2f(x + size, y + size);
-		glVertex2f(x, y + size);
+		glVertex2f(x + width, y);
+		glVertex2f(x + width, y + height);
+		glVertex2f(x, y + height);
 	glEnd();
 	glEnable(GL_TEXTURE_2D);
 	glPopMatrix();

@@ -58,7 +58,7 @@ public:
 
 	void DrawSquare(int length);
 	void DrawLineCube(int x, int y, int width, int height);
-	void DrawCubeTextured(int x, int y, int size);
+	void DrawCubeTextured(int x, int y, int width, int height, Vector3 color, float alphaColor, int TexID);
 
 	void DrawLegend();
 
@@ -76,9 +76,12 @@ private:
 	int m_lives;
 	int m_score;
 
-	//Alarm color and bool for alarm
+	//Alarm color. Arlam dir controls which whether alarmcolor goes up or down. Bool soundplaying
+	//is used for playing only one sound, or the program will play it multiple times.
 	bool Alarm;
-	float Color;
+	float AlarmColor;
+	int AlarmDir;
+	bool SoundPlaying;
 
 	int robberCount;
 
@@ -95,5 +98,4 @@ private:
 
 	//Variables and things regarding to sound
 	irrklang::ISoundEngine* theSoundEngine;
-	irrklang::ISound* AlarmSound;
 };
