@@ -58,12 +58,12 @@ void AI::Init()
 	
 	moneypile = FetchGO();
 	moneypile->type = GameObject::GO_MONEY;
-	moneypile->pos.Set(40, 30, 0);
+	moneypile->pos.Set(50, 30, 0);
 	moneypile->scale.Set(1, 1, 1);
 
 	moneypile2 = FetchGO();
 	moneypile2->type = GameObject::GO_MONEY;
-	moneypile2->pos.Set(40, 60, 0);
+	moneypile2->pos.Set(50, 60, 0);
 	moneypile2->scale.Set(1, 1, 1);
 
 	exit = FetchGO();
@@ -242,6 +242,9 @@ void AI::GlutKeyboard(unsigned char key, int x, int y)
 		}
 		Init();
 		break;
+	case 27:
+		::exit(0);
+		break;
 	}
 }
 
@@ -350,7 +353,10 @@ void AI::GlutIdle()
 					else
 						GotoLocation(moneypile2->pos, go, 15);
 					if (ReachedLocation(moneypile->pos, go) || ReachedLocation(moneypile2->pos, go))
+					{
 						go->money++;
+						go->vel.SetZero();
+					}
 
 					break;
 
@@ -407,7 +413,7 @@ void AI::GlutIdle()
 					if (go->TargetLocked)
 					{
 						//if (!(robbers[go->Target]->pos == go->TargetPos))
-						if (!(robbers[go->Target]->active))
+						if ((robbers[go->Target]->CurrentState == GameObject::STATES::CAUGHT) && (!robbers[go->Target]->active))
 						{
 							go->TargetLocked = false;
 							std::cout << "Target change" << std::endl;
@@ -415,8 +421,24 @@ void AI::GlutIdle()
 					}
 					if (!go->TargetLocked && robberCount > 0)
 					{
-						go->Target = rand() % robbers.size();
+						for(int i=0;i<robbers.size();i++)
+						{
+							if((robbers[i]->pos- go->pos).LengthSquared() <= ((robbers[go->Target]->pos) - go->pos).LengthSquared()
+								&& robbers[i]->active == true && robbers[i]->CurrentState != GameObject::STATES::CAUGHT)
+							{
+								go->Target = i;
+							}
+						}
 						go->TargetLocked = true;
+
+						while(true)
+						{
+							go->Target = rand() % robbers.size();
+							if(robbers[go->Target]->CurrentState != GameObject::STATES::CAUGHT)
+							{
+								break;
+							}
+						}
 					}
 
 					if (robberCount == 0) {
@@ -425,11 +447,21 @@ void AI::GlutIdle()
 					}
 					else
 					{
-						GotoLocation(robbers[go->Target]->pos, go, 15);
+						GotoLocation(robbers[go->Target]->pos, go, 25);
 						go->TargetPos = robbers[go->Target]->pos/* + robbers[go->Target]->vel*/;
 
-						if ((go->pos - robbers[go->Target]->pos).Length() < 5) {
-							if (robbers[go->Target]->active) {
+						/*if ((go->pos - robbers[go->Target]->pos).Length() < 5)
+						{
+							if ((robbers[go->Target]->active) && (!robbers[go->Target]->CurrentState == GameObject::STATES::CAUGHT)) {
+								robbers[go->Target]->CurrentState = GameObject::STATES::CAUGHT;
+								go->TargetLocked = false;
+								robberCount--;
+							}
+						}*/
+						if(ReachedLocation(robbers[go->Target]->pos, go))
+						{
+							if(robbers[go->Target]->CurrentState != GameObject::STATES::CAUGHT)
+							{
 								robbers[go->Target]->CurrentState = GameObject::STATES::CAUGHT;
 								go->TargetLocked = false;
 								robberCount--;
@@ -493,8 +525,11 @@ void AI::GlutDisplay()
 	sprintf_s(temp, "Robbers: %d", robberCount);
 	RenderStringOnScreen(0, 94, temp);
 
-	sprintf_s(temp, "Robbers: %d", robberCount);
-	RenderStringOnScreen(0, 94, temp);
+	//sprintf_s(temp, "Robber's States: %s", robberCount);
+	//RenderStringOnScreen(0, 0, temp);
+
+	//sprintf_s(temp, "Police's States: %s", robberCount);
+	//RenderStringOnScreen(52, 0, temp);
 
 	sprintf_s(temp, "Police");
 	RenderStringOnScreen(32, 94, temp);
@@ -577,7 +612,16 @@ void AI::DrawObject(GameObject *go)
 					glVertex3f(-3 + 0.06 * go->money, -1, 0);
 					glVertex3f(-3 + 0.06 * go->money, 1, 0);
 				glEnd();
+
+				//RenderString
+				//glPushMatrix();
+					//glTranslatef(0,5,0);
+
+				//glPopMatrix();
 			}
+			char temp[64];
+			sprintf_s(temp, "%s", FindState(go->CurrentState).c_str());
+			RenderStringOnScreen(1 / go->pos.x - 2, 1 / go->pos.y + 2, temp);
 		glPopMatrix();
 		
 		break;
@@ -593,14 +637,23 @@ void AI::DrawObject(GameObject *go)
 		glPopMatrix();*/
 
 		glPushMatrix();
-			glColor3f(1, 1, 1);
-			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
-			glScalef(go->scale.x, go->scale.y, go->scale.z);
-			glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_POLICE].texID);
+		glColor3f(1, 1, 1);
+		glTranslatef(go->pos.x, go->pos.y, go->pos.z);
+		glScalef(go->scale.x, go->scale.y, go->scale.z);
+		glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_POLICE].texID);
 			DrawSquare(4);
-		glPopMatrix();
 
 		glDisable(GL_BLEND);
+			//glTranslatef(0,1,0);
+
+		char temp1[64];
+		sprintf_s(temp, "%s", FindState(go->CurrentState).c_str());
+		RenderStringOnScreen(1 / go->pos.x  - 2, 1 / go->pos.y + 2, temp1);
+		glPopMatrix();
+
+
+
+
 		break;
 	case GameObject::GO_WAYPOINTS:
 		glPushMatrix();
@@ -655,7 +708,7 @@ void AI::RenderStringOnScreen(float x, float y, const char* quote)
 
 	for (int i = 0; i < length; i++)
 	{
-		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, quote[i]);
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18   , quote[i]);
 	}
 }
 
@@ -821,4 +874,32 @@ void AI::DrawLegend()
 	//All strings are drawn last at glutdisplay();
 	glDisable(GL_BLEND);
 	//End draw money
+}
+
+std::string AI::FindState(GameObject::STATES theState)
+{
+	if(theState == GameObject::PATROLLING)
+	{
+		return "Patrolling";	
+	}
+	else if(theState == GameObject::MOVING)
+	{
+		return "Moving";	
+	}
+	else if(theState == GameObject::CHASING)
+	{
+		return "Chasing";	
+	}
+	else if(theState == GameObject::STEALING)
+	{
+		return "Stealing";	
+	}
+	else if(theState == GameObject::RUNNING)
+	{
+		return "Running";	
+	}
+	else if(theState == GameObject::CAUGHT)
+	{
+		return "Caught";	
+	}
 }

@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	glutIdleFunc(idle);
 	glutDisplayFunc(display);
 	glutSpecialFunc(onSpecialKey);
-
+	glutFullScreen();
 	AI::GetInstance()->SetupRenderContext();
 	AI::GetInstance()->Init();
 	glutMainLoop();

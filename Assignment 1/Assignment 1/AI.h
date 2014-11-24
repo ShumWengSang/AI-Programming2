@@ -7,6 +7,7 @@
 #include "irrKlang.h"
 #include "GameObject.h"
 #include "freeglut.h"
+#include <cstdlib>
 
 
 #pragma comment(lib,"irrKlang.lib")
@@ -61,6 +62,8 @@ public:
 	void DrawCubeTextured(int x, int y, int width, int height, Vector3 color, float alphaColor, int TexID);
 
 	void DrawLegend();
+
+	std::string FindState(GameObject::STATES theState);
 
 private:
 	AI();

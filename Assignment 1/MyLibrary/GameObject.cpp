@@ -7,6 +7,7 @@ GameObject::GameObject(GAMEOBJECT_TYPE typeValue)
 	money(0.f),
 	color(1,1,1)
 {
+	Target = 0;
 }
 
 GameObject::~GameObject()
