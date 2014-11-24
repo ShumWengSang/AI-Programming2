@@ -493,6 +493,9 @@ void AI::GlutDisplay()
 	sprintf_s(temp, "Robbers: %d", robberCount);
 	RenderStringOnScreen(0, 94, temp);
 
+	sprintf_s(temp, "Robbers: %d", robberCount);
+	RenderStringOnScreen(0, 94, temp);
+
 	sprintf_s(temp, "Police");
 	RenderStringOnScreen(32, 94, temp);
 
