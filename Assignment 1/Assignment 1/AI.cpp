@@ -56,15 +56,15 @@ void AI::Init()
 
 	Alarm = false;
 	
-	money = FetchGO();
-	money->type = GameObject::GO_MONEY;
-	money->pos.Set(40, 30, 0);
-	money->scale.Set(1, 1, 1);
+	moneypile = FetchGO();
+	moneypile->type = GameObject::GO_MONEY;
+	moneypile->pos.Set(40, 30, 0);
+	moneypile->scale.Set(1, 1, 1);
 
-	money = FetchGO();
-	money->type = GameObject::GO_MONEY;
-	money->pos.Set(40, 60, 0);
-	money->scale.Set(1, 1, 1);
+	moneypile2 = FetchGO();
+	moneypile2->type = GameObject::GO_MONEY;
+	moneypile2->pos.Set(40, 60, 0);
+	moneypile2->scale.Set(1, 1, 1);
 
 	exit = FetchGO();
 	exit->type = GameObject::GO_EXIT;
@@ -74,21 +74,25 @@ void AI::Init()
 	go = FetchGO();
 	go->type = GameObject::GO_ROBBER;
 	go->pos.Set(30, 60, 0);
+	go->Target = rand() % 2;
 	go->CurrentState = GameObject::STATES::STEALING;
 	
 	go = FetchGO();
 	go->type = GameObject::GO_ROBBER;
-	go->pos.Set(30, 40, 0);
+	go->pos.Set(30, 40, 0);	
+	go->Target = rand() % 2;
 	go->CurrentState = GameObject::STATES::STEALING;
 
 	go = FetchGO();
 	go->type = GameObject::GO_ROBBER;
 	go->pos.Set(30, 20, 0);
+	go->Target = rand() % 2;
 	go->CurrentState = GameObject::STATES::STEALING;
 
 	go = FetchGO();
 	go->type = GameObject::GO_ROBBER;
 	go->pos.Set(40, 20, 0);
+	go->Target = rand() % 2;
 	go->CurrentState = GameObject::STATES::STEALING;
 
 	go = FetchGO();
@@ -321,17 +325,31 @@ void AI::GlutIdle()
 			switch (go->type)
 			{
 			case GameObject::GO_ROBBER:
-				if (go->money < 100) 
-					go->CurrentState = GameObject::STATES::STEALING;
-				else 
-					go->CurrentState = GameObject::STATES::RUNNING;
+				if (go->CurrentState != GameObject::STATES::CAUGHT)
+				{
+					if (go->money < 100) {
+						go->CurrentState = GameObject::STATES::STEALING;
+						if (go->TargetLocked == false) {
+							go->Target = rand() % 2;
+							std::cout << go->Target;
+							go->TargetLocked = true;
+						}
+					}
+					else {
+						go->CurrentState = GameObject::STATES::RUNNING;
+						go->TargetLocked = false;
+					}
+				}
 
 				switch (go->CurrentState) 
 				{
 				case GameObject::STATES::STEALING:
 					//go->money += 1;
-					GotoLocation(money->pos, go, 15);
-					if (ReachedLocation(money->pos, go))
+					if (go->Target == 0)
+						GotoLocation(moneypile->pos, go, 15);
+					else
+						GotoLocation(moneypile2->pos, go, 15);
+					if (ReachedLocation(moneypile->pos, go) || ReachedLocation(moneypile2->pos, go))
 						go->money++;
 
 					break;
@@ -350,6 +368,9 @@ void AI::GlutIdle()
 
 						}
 					}
+					break;
+				case GameObject::STATES::CAUGHT:
+					go->vel.SetZero();
 					break;
 				}
 				break;
@@ -409,7 +430,7 @@ void AI::GlutIdle()
 
 						if ((go->pos - robbers[go->Target]->pos).Length() < 5) {
 							if (robbers[go->Target]->active) {
-								robbers[go->Target]->active = false;
+								robbers[go->Target]->CurrentState = GameObject::STATES::CAUGHT;
 								go->TargetLocked = false;
 								robberCount--;
 							}
@@ -535,22 +556,25 @@ void AI::DrawObject(GameObject *go)
 
 			glDisable(GL_BLEND);
 
-			glTranslatef(0, 4, 0); //Bar Outline
-			glColor3f(0, 1, 0);
-			glBegin(GL_LINES);
-				glVertex3f(-3, -1, 0);	glVertex3f(3, -1, 0);
-				glVertex3f(3, 1, 0);	glVertex3f(-3, 1, 0);
-				glVertex3f(3, -1, 0);	glVertex3f(3, 1, 0);
-				glVertex3f(-3, -1, 0);	glVertex3f(-3, 1, 0);
-			glEnd();
+			if (go->CurrentState != GameObject::STATES::CAUGHT)
+			{
+				glTranslatef(0, 4, 0); //Bar Outline
+				glColor3f(0, 1, 0);
+				glBegin(GL_LINES);
+					glVertex3f(-3, -1, 0);	glVertex3f(3, -1, 0);
+					glVertex3f(3, 1, 0);	glVertex3f(-3, 1, 0);
+					glVertex3f(3, -1, 0);	glVertex3f(3, 1, 0);
+					glVertex3f(-3, -1, 0);	glVertex3f(-3, 1, 0);
+				glEnd();
+			
 
-
-			glBegin(GL_QUADS);
-				glVertex3f(-3, 1, 0);
-				glVertex3f(-3, -1, 0);
-				glVertex3f(-3 + 0.06 * go->money, -1, 0);
-				glVertex3f(-3 + 0.06 * go->money, 1, 0);
-			glEnd();
+				glBegin(GL_QUADS);
+					glVertex3f(-3, 1, 0);
+					glVertex3f(-3, -1, 0);
+					glVertex3f(-3 + 0.06 * go->money, -1, 0);
+					glVertex3f(-3 + 0.06 * go->money, 1, 0);
+				glEnd();
+			}
 		glPopMatrix();
 		
 		break;

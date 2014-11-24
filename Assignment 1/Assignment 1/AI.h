@@ -87,7 +87,8 @@ private:
 
 	GameObject* FetchGO();
 	GameObject* exit;
-	GameObject* money;
+	GameObject* moneypile;
+	GameObject* moneypile2;
 	//Vector3 WayPoints[5];
 	WayPoint thePoints[5];
 
