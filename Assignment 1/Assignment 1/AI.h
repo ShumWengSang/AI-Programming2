@@ -8,7 +8,7 @@
 #include "GameObject.h"
 #include "freeglut.h"
 #include <cstdlib>
-
+#include "Timer.h"
 
 #pragma comment(lib,"irrKlang.lib")
 
@@ -60,7 +60,7 @@ public:
 	void DrawSquare(int length);
 	void DrawLineCube(int x, int y, int width, int height);
 	void DrawCubeTextured(int x, int y, int width, int height, Vector3 color, float alphaColor, int TexID);
-
+	void DrawBackground(int x, int y);
 	void DrawLegend();
 
 	std::string FindState(GameObject::STATES theState);
@@ -76,15 +76,14 @@ private:
 	float m_worldSizeY;
 	Vector3 m_force;
 
-	int m_lives;
-	int m_score;
-
 	//Alarm color. Arlam dir controls which whether alarmcolor goes up or down. Bool soundplaying
 	//is used for playing only one sound, or the program will play it multiple times.
 	bool Alarm;
 	float AlarmColor;
 	int AlarmDir;
 	bool SoundPlaying;
+
+	bool ShowDebug;
 
 	int robberCount;
 
@@ -102,4 +101,8 @@ private:
 
 	//Variables and things regarding to sound
 	irrklang::ISoundEngine* theSoundEngine;
+
+	float countDown;
+
+	Timer* timer;
 };

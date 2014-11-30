@@ -8,15 +8,18 @@ inline const char * const BooltoString(bool b)
 }
 
 void AI::Init()
-{
-
+{	
 	srand(time(NULL));
 	GameObject * go;
 	Math::InitRNG();
 
+	if (SoundPlaying)
+		theSoundEngine->stopAllSounds();
+
 	SoundPlaying = false;
 	AlarmColor = 1;
 	AlarmDir = -1;
+	countDown = rand() % 6 + 5;
 
 	theSoundEngine = irrklang::createIrrKlangDevice();
 	if (!theSoundEngine)
@@ -26,7 +29,7 @@ void AI::Init()
 	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_POLICE], "images/police.tga");
 	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_MONEY], "images/money.tga");
 	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_EXIT], "images/exit.tga");
-
+	LoadTGA(&textures[GameObject::GAMEOBJECT_TYPE::GO_WALL], "images/bg.tga");
 	//WayPoints[0] = Vector3(90, 60, 0);
 	//WayPoints[1] = Vector3(110, 60, 0);
 	//WayPoints[2] = Vector3(110, 40, 0);
@@ -55,15 +58,16 @@ void AI::Init()
 	}
 
 	Alarm = false;
-	
+	ShowDebug = true;
+
 	moneypile = FetchGO();
 	moneypile->type = GameObject::GO_MONEY;
-	moneypile->pos.Set(50, 30, 0);
+	moneypile->pos.Set(rand() % 10 + 20, rand() % 31 + 30, 0);
 	moneypile->scale.Set(1, 1, 1);
 
 	moneypile2 = FetchGO();
 	moneypile2->type = GameObject::GO_MONEY;
-	moneypile2->pos.Set(50, 60, 0);
+	moneypile2->pos.Set(rand() % 10 + 45, rand() % 31 + 30, 0);
 	moneypile2->scale.Set(1, 1, 1);
 
 	exit = FetchGO();
@@ -242,6 +246,9 @@ void AI::GlutKeyboard(unsigned char key, int x, int y)
 		}
 		Init();
 		break;
+	case 'd':
+		ShowDebug = !ShowDebug;
+		break;
 	case 27:
 		::exit(0);
 		break;
@@ -275,6 +282,8 @@ void AI::GlutIdle()
 	++frame;
 	int time = glutGet(GLUT_ELAPSED_TIME);
 	float dt = (time - lastTime) / 1000.f;
+	if (countDown > 0)
+		countDown -= dt;
 	lastTime = time;
 
 	static int lastFPSTime = glutGet(GLUT_ELAPSED_TIME);
@@ -284,11 +293,19 @@ void AI::GlutIdle()
 		lastFPSTime = time;
 		frame = 0;
 	}
+
+	if (countDown <= 0)
+	{
+		countDown = 0;
+		Alarm = true;
+	}
+
 	if (Alarm)
 	{
 		if (!SoundPlaying)
 		{
 			SoundPlaying = true;
+			theSoundEngine->setSoundVolume(0.2f);
 			theSoundEngine->play2D("Alarm.wav");
 		}
 		//The below controls the color of the alarm
@@ -502,11 +519,13 @@ void AI::GlutDisplay()
 	DrawCubeTextured(30, 5, 5, 80, Vector3(1, 1, 1), 1, 0);
 	if (Alarm)
 	{
-
 		DrawCubeTextured(30, 20, 5, 20, Vector3 (0,0,0) ,1,0);
 	}
+	
+	DrawBackground(6, 10);
 
 	DrawLineCube(6, 10, 120, 80);
+	
 	DrawLegend();
 
 	for (std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
@@ -524,6 +543,9 @@ void AI::GlutDisplay()
 	char temp[64];
 	sprintf_s(temp, "Robbers: %d", robberCount);
 	RenderStringOnScreen(0, 94, temp);
+
+	sprintf_s(temp, "Time left: %.2f", countDown);
+	RenderStringOnScreen(16, 94, temp);
 
 	//sprintf_s(temp, "Robber's States: %s", robberCount);
 	//RenderStringOnScreen(0, 0, temp);
@@ -656,12 +678,15 @@ void AI::DrawObject(GameObject *go)
 
 		break;
 	case GameObject::GO_WAYPOINTS:
-		glPushMatrix();
-			glColor3f(1, 1, 1);
-			glTranslatef(go->pos.x, go->pos.y, go->pos.z);
-			glScalef(go->scale.x, go->scale.y, go->scale.z);
-			glutSolidSphere(1, 10, 10);
-		glPopMatrix();
+		if (ShowDebug)
+		{
+			glPushMatrix();
+				glColor3f(1, 1, 1);
+				glTranslatef(go->pos.x, go->pos.y, go->pos.z);
+				glScalef(go->scale.x, go->scale.y, go->scale.z);
+				glutSolidSphere(1, 10, 10);
+			glPopMatrix();
+		}
 		break;
 	case GameObject::GO_MONEY:
 		glEnable(GL_BLEND);
@@ -874,6 +899,21 @@ void AI::DrawLegend()
 	//All strings are drawn last at glutdisplay();
 	glDisable(GL_BLEND);
 	//End draw money
+}
+
+void AI::DrawBackground(int x, int y)
+{
+	glPushMatrix();
+		glColor3f(1, 1, 1);
+		glTranslatef(x, y, 0);
+		glBindTexture(GL_TEXTURE_2D, textures[GameObject::GAMEOBJECT_TYPE::GO_WALL].texID);
+		glBegin(GL_QUADS);
+			glTexCoord2f(0, 0);		glVertex2f(0, 0);
+			glTexCoord2f(1, 0);		glVertex2f(120, 0);
+			glTexCoord2f(1, 1);		glVertex2f(120, 80);
+			glTexCoord2f(0, 1);		glVertex2f(0, 80);
+		glEnd();
+	glPopMatrix();
 }
 
 std::string AI::FindState(GameObject::STATES theState)
