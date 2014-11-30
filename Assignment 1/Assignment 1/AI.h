@@ -85,6 +85,9 @@ private:
 
 	bool ShowDebug;
 
+	bool pauseTimer;
+	float countDown;
+
 	int robberCount;
 
 	GameObject* FetchGO();
@@ -102,7 +105,5 @@ private:
 	//Variables and things regarding to sound
 	irrklang::ISoundEngine* theSoundEngine;
 
-	float countDown;
 
-	Timer* timer;
 };

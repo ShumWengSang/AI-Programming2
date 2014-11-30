@@ -19,7 +19,8 @@ void AI::Init()
 	SoundPlaying = false;
 	AlarmColor = 1;
 	AlarmDir = -1;
-	countDown = rand() % 6 + 5;
+	pauseTimer = false;
+	countDown = rand() % 46 + 15;
 
 	theSoundEngine = irrklang::createIrrKlangDevice();
 	if (!theSoundEngine)
@@ -236,6 +237,7 @@ void AI::GlutKeyboard(unsigned char key, int x, int y)
 		break;
 	case ' ':
 		Alarm = true;
+		countDown = 0;
 		break;
 	case 'r':
 		while (m_goList.size() > 0)
@@ -245,6 +247,9 @@ void AI::GlutKeyboard(unsigned char key, int x, int y)
 			m_goList.pop_back();
 		}
 		Init();
+		break;
+	case 'p':
+		pauseTimer = !pauseTimer;
 		break;
 	case 'd':
 		ShowDebug = !ShowDebug;
@@ -282,7 +287,7 @@ void AI::GlutIdle()
 	++frame;
 	int time = glutGet(GLUT_ELAPSED_TIME);
 	float dt = (time - lastTime) / 1000.f;
-	if (countDown > 0)
+	if (countDown > 0 && !pauseTimer)
 		countDown -= dt;
 	lastTime = time;
 
@@ -430,7 +435,7 @@ void AI::GlutIdle()
 					if (go->TargetLocked)
 					{
 						//if (!(robbers[go->Target]->pos == go->TargetPos))
-						if ((robbers[go->Target]->CurrentState == GameObject::STATES::CAUGHT) && (!robbers[go->Target]->active))
+						if ((robbers[go->Target]->CurrentState == GameObject::STATES::CAUGHT) || (!robbers[go->Target]->active))
 						{
 							go->TargetLocked = false;
 							std::cout << "Target change" << std::endl;
@@ -458,7 +463,7 @@ void AI::GlutIdle()
 						}
 					}
 
-					if (robberCount == 0) {
+					if (robberCount <= 0) {
 						GotoLocation(exit->pos, go, 15);
 						go->TargetLocked = false;
 					}
@@ -561,6 +566,23 @@ void AI::GlutDisplay()
 
 	sprintf_s(temp, "Money");
 	RenderStringOnScreen(72, 94, temp);
+
+
+
+	sprintf_s(temp, "Space - Start Alarm");
+	RenderStringOnScreen(0, 6, temp);
+
+	sprintf_s(temp, "p - Pause timer");
+	RenderStringOnScreen(18, 6, temp);
+
+	sprintf_s(temp, "r - Restart scene");
+	RenderStringOnScreen(32, 6, temp);
+
+	sprintf_s(temp, "d - Togglr debug info");
+	RenderStringOnScreen(48, 6, temp);
+
+	sprintf_s(temp, "Esc - Exit");
+	RenderStringOnScreen(70, 6, temp);
 
 	//sprintf_s(temp, "Simulation Speed: %.1f", m_speed);
 	//RenderStringOnScreen(0, 90, temp);
