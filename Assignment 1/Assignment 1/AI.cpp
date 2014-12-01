@@ -20,7 +20,7 @@ void AI::Init()
 	AlarmColor = 1;
 	AlarmDir = -1;
 	pauseTimer = false;
-	countDown = rand() % 46 + 15;
+	countDown = rand() % 16 + 15;
 
 	theSoundEngine = irrklang::createIrrKlangDevice();
 	if (!theSoundEngine)
@@ -369,7 +369,9 @@ void AI::GlutIdle()
 				switch (go->CurrentState) 
 				{
 				case GameObject::STATES::STEALING:
-					//go->money += 1;
+		//			if (Alarm )
+					
+					
 					if (go->Target == 0)
 						GotoLocation(moneypile->pos, go, 15);
 					else
@@ -430,19 +432,19 @@ void AI::GlutIdle()
 					}
 					break;
 				case GameObject::STATES::CHASING:		
-
-
+					if (go->TargetLocked && go->Target == 0 && go->TargetPos.IsZero())
+						go->TargetLocked = false;
 					if (go->TargetLocked)
 					{
 						//if (!(robbers[go->Target]->pos == go->TargetPos))
-						if ((robbers[go->Target]->CurrentState == GameObject::STATES::CAUGHT) || (!robbers[go->Target]->active))
+						if ((robbers[go->Target]->CurrentState == GameObject::STATES::CAUGHT) || !(robbers[go->Target]->active))
 						{
 							go->TargetLocked = false;
 							std::cout << "Target change" << std::endl;
 						}
 					}
 					if (!go->TargetLocked && robberCount > 0)
-					{
+					{/*
 						for(int i=0;i<robbers.size();i++)
 						{
 							if((robbers[i]->pos- go->pos).LengthSquared() <= ((robbers[go->Target]->pos) - go->pos).LengthSquared()
@@ -450,14 +452,15 @@ void AI::GlutIdle()
 							{
 								go->Target = i;
 							}
-						}
-						go->TargetLocked = true;
-
+						}*/
+//						go->TargetLocked = true;
+					//	go->TargetLocked = true;
 						while(true)
 						{
 							go->Target = rand() % robbers.size();
-							if(robbers[go->Target]->CurrentState != GameObject::STATES::CAUGHT)
+							if (robbers[go->Target]->CurrentState != GameObject::STATES::CAUGHT && robbers[go->Target]->active)
 							{
+								go->TargetLocked = true;
 								break;
 							}
 						}
@@ -471,7 +474,11 @@ void AI::GlutIdle()
 					{
 						GotoLocation(robbers[go->Target]->pos, go, 25);
 						go->TargetPos = robbers[go->Target]->pos/* + robbers[go->Target]->vel*/;
-
+						/*if (go->TargetPos.IsZero())
+						{
+							GotoLocation(exit->pos, go, 25);
+							go->TargetPos = exit->pos;
+						}*/
 						/*if ((go->pos - robbers[go->Target]->pos).Length() < 5)
 						{
 							if ((robbers[go->Target]->active) && (!robbers[go->Target]->CurrentState == GameObject::STATES::CAUGHT)) {
@@ -666,6 +673,17 @@ void AI::DrawObject(GameObject *go)
 			char temp[64];
 			sprintf_s(temp, "%s", FindState(go->CurrentState).c_str());
 			RenderStringOnScreen(1 / go->pos.x - 2, 1 / go->pos.y + 2, temp);
+			if (ShowDebug)
+			{
+				sprintf_s(temp, "%.2f, %.2f, %.2f", go->TargetPos.x, go->TargetPos.y, go->TargetPos.z);
+				RenderStringOnScreen(1 / go->pos.x + 5, 1 / go->pos.y + 2, temp);
+				glColor3f(0, 0, 0);
+				sprintf_s(temp, "%.2f, %.2f, %.2f", go->pos.x, go->pos.y, go->pos.z);
+				RenderStringOnScreen(1 / go->pos.x + 5, 1 / go->pos.y + 2, temp);
+				/*glColor3f(1, 0, 0);
+				sprintf_s(temp, "%d", );
+				RenderStringOnScreen(1 / go->pos.x - 2, 1 / go->pos.y + 1, temp);*/
+			}	
 		glPopMatrix();
 		
 		break;
@@ -693,6 +711,16 @@ void AI::DrawObject(GameObject *go)
 		char temp1[64];
 		sprintf_s(temp, "%s", FindState(go->CurrentState).c_str());
 		RenderStringOnScreen(1 / go->pos.x  - 2, 1 / go->pos.y + 2, temp1);
+		
+		if (ShowDebug)
+		{
+			glColor3f(0, 0, 0);
+			sprintf_s(temp, "%.2f, %.2f, %.2f", go->TargetPos.x, go->TargetPos.y, go->TargetPos.z);
+			RenderStringOnScreen(1 / go->pos.x + 5, 1 / go->pos.y + 2, temp);
+			glColor3f(1, 0, 0);
+			sprintf_s(temp, "%d", go->Target);
+			RenderStringOnScreen(1 / go->pos.x -2, 1 / go->pos.y + 1, temp);
+		}
 		glPopMatrix();
 
 
